@@ -1,6 +1,5 @@
 
 /*
-Testing_1
 GROUP: Ng Yan Lam, Leong Yung Thai, Desmond Cheng Wen Xuan
 Group Assignment
 Title: Hospital Management System
