@@ -1,4 +1,6 @@
+
 /*
+Testing_1
 GROUP: Ng Yan Lam, Leong Yung Thai, Desmond Cheng Wen Xuan
 Group Assignment
 Title: Hospital Management System
@@ -13,23 +15,21 @@ import java.awt.*;
 import javax.swing.border.Border;
 
 public class HMS {
-    public static void main(String[] args) 
-    {
+    public static void main(String[] args) {
         loginPage();
     }
-    
-    //Login Page for Hospital Management System
-    public static void loginPage() 
-    {
+
+    // Login Page for Hospital Management System
+    public static void loginPage() {
         // Create a panel with two text fields
         JPanel panel = new JPanel(new GridLayout(5, 2, 2, 2));
         JTextField staffIDField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
-        
+
         // Remove the border around the text fields
         staffIDField.setBorder(null);
         passwordField.setBorder(null);
-        
+
         // Create labels for staff ID and password
         JTextField staffIDLabel = new JTextField("Staff ID: ");
         staffIDLabel.setEditable(false);
@@ -37,7 +37,7 @@ public class HMS {
         JTextField passwordLabel = new JTextField("Password: ");
         passwordLabel.setEditable(false);
         passwordLabel.setBorder(null);
-        
+
         panel.add(staffIDLabel);
         panel.add(staffIDField);
         panel.add(passwordLabel);
@@ -56,7 +56,8 @@ public class HMS {
             if (!staffID.isEmpty() && !password.isEmpty()) {
                 mainPageFrame(staffID);
             } else {
-                JOptionPane.showMessageDialog(null, "Invalid Staff ID or Password.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Invalid Staff ID or Password.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
                 loginPage();
             }
         } else {
@@ -65,7 +66,7 @@ public class HMS {
         }
     }
 
-    //Main Page for Hospital Management System
+    // Main Page for Hospital Management System
     public static void mainPageFrame(String staffID) {
         // Create a new JFrame for the next page
         JFrame mainPageFrame = new JFrame("Hospital Management System");
