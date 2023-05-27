@@ -35,8 +35,9 @@ public class HMS {
         panel.add(passwordField);
 
         // Show the custom dialog
+        String[] options = { "Login", "Cancel" };
         int result = JOptionPane.showOptionDialog(null, panel, "Log In",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 
         // Check if the user clicked "OK"
         if (result == JOptionPane.OK_OPTION) {
