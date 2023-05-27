@@ -4,70 +4,90 @@ GROUP: Ng Yan Lam, Leong Yung Thai, Desmond Cheng Wen Xuan
 Group Assignment
 Title: Hospital Management System
 */
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.*;
 import javax.swing.border.Border;
 
-public class HMS {
+public class HMS extends JFrame implements ActionListener {
     public static void main(String[] args) {
-        loginPage();
+        new HMS();
     }
 
-    // Login Page for Hospital Management System
-    public static void loginPage() {
-        // Create a panel with two text fields
-        JPanel panel = new JPanel(new GridLayout(5, 2, 2, 2));
-        JTextField staffIDField = new JTextField();
-        JPasswordField passwordField = new JPasswordField();
+    // Declaration
+    JLabel staffIDLabel, passwordLabel;
+    JTextField staffIDField;
+    JPasswordField passwordField;
+    JButton loginBtn;
 
-        // Create labels for staff ID and password
-        JLabel staffIDLabel = new JLabel("Staff ID: ");
-        JLabel passwordLabel = new JLabel("Password: ");
+    HMS() {
+        setTitle("Log In");
+        setLayout(null);
+        // Staff ID
+        staffIDLabel = new JLabel("Staff ID");
+        staffIDLabel.setBounds(60, 30, 300, 25);
+        staffIDField = new JTextField();
+        staffIDField.setBounds(160, 30, 250, 25);
+        // Password
+        passwordLabel = new JLabel("Password");
+        passwordLabel.setBounds(60, 80, 300, 25);
+        passwordField = new JPasswordField();
+        passwordField.setBounds(160, 80, 250, 25);
+        // Button
+        loginBtn = new JButton("Login");
+        loginBtn.setBounds(175, 140, 150, 25);
+        // cancelBtn = new JButton("Cancel");
+        // cancelBtn.setBounds(130, 140, 80, 25);
+        add(staffIDLabel);
+        add(staffIDField);
+        add(passwordLabel);
+        add(passwordField);
+        add(loginBtn);
+        // Add action listener to buttons
+        loginBtn.addActionListener(this);
 
-        // Add the components to panel
-        panel.add(staffIDLabel);
-        panel.add(staffIDField);
-        panel.add(passwordLabel);
-        panel.add(passwordField);
+        // Set the size and close operation for the frame
+        setResizable(false);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setVisible(true);
+        setSize(500, 250);
+        setLocationRelativeTo(null);
+    }
 
-        // Show the custom dialog
-        String[] options = { "Login", "Cancel" };
-        int result = JOptionPane.showOptionDialog(null, panel, "Log In",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-
-        // Check if the user clicked "OK"
-        if (result == JOptionPane.OK_OPTION) {
-            String staffID = staffIDField.getText();
-            String password = passwordField.getText();
-            System.out.println("staffID: " + staffID);
-            System.out.println("password: " + password);
-            if (!staffID.isEmpty() && !password.isEmpty()) {
-                mainPageFrame(staffID);
-            } else if (staffID.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Pleese enter your staff ID.", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                loginPage();
-            } else if (password.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Pleese enter your password.", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                loginPage();
-            } else {
-                JOptionPane.showMessageDialog(null, "Invalid Login.", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                loginPage();
+    public void actionPerformed(ActionEvent Btn) {
+        if (Btn.getSource() == loginBtn) {
+            String username = staffIDField.getText();
+            String password = new String(passwordField.getPassword());
+            try {
+                // Connect to MySQL database
+                // Please check your port before run it!!!
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root",
+                        "");
+                // Create statement object
+                Statement stmt = con.createStatement();
+                // Execute SQL query to verify user
+                ResultSet rs = stmt.executeQuery(
+                        "SELECT * FROM login WHERE NAME='" + username + "' AND PASSWORD ='" + password + "'");
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "Login successful");
+                    dispose(); // Close login window
+                    mainPageFrame(null, username);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Invalid username or password");
+                }
+                // Clean up resources
+                rs.close();
+                stmt.close();
+                con.close();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
             }
-        } else {
-            // User canceled the dialog
-            System.out.println("User canceled to Login.");
         }
     }
 
     // Main Page for Hospital Management System
-    public static void mainPageFrame(String staffID) {
+    public static void mainPageFrame(HMS hsmInstance, String staffID) {
         JFrame mainPageFrame = new JFrame("Hospital Management System");
 
         JLabel systemTitleLabel = new JLabel("Welcome to Hospital Management System!");
@@ -140,8 +160,8 @@ public class HMS {
         JTextField patientIdenficationNumberField = new JTextField();
         patientIdenficationNumberField.setBounds(300, 480, 500, 30);
         // Button for Registration Page
-        JButton registerButton = new JButton("Register");
-        registerButton.setBounds(330, 560, 200, 30);
+        JButton registerBtn = new JButton("Register");
+        registerBtn.setBounds(330, 560, 200, 30);
         // Add components to Registration Page
         registrationPanel.add(registrationTitleLabel);
         registrationPanel.add(firstNameLabel);
@@ -162,22 +182,55 @@ public class HMS {
         registrationPanel.add(countryField);
         registrationPanel.add(patientIdenficationNumberLabel);
         registrationPanel.add(patientIdenficationNumberField);
-        registrationPanel.add(registerButton);
+        registrationPanel.add(registerBtn);
 
-        // Add an action listener to the register button
-        registerButton.addActionListener(e -> {
+        registerBtn.addActionListener(e -> {
             // Perform registration logic here
-            System.out.println("First Name: " + firstNameField.getText());
-            System.out.println("Last Name: " + lastNameField.getText());
-            System.out.println("Phone Number: " + phoneNumberField.getText());
-            System.out.println("Personal Health Number: " + personalHealthNumberField.getText());
-            System.out.println("Address: " + addressField.getText());
-            System.out.println("Postal Code: " + postalCodeField.getText());
-            System.out.println("City: " + cityField.getText());
-            System.out.println("Country: " + countryField.getText());
-            System.out.println("Patient Idenfication Number: " + patientIdenficationNumberField.getText());
-            mainPageFrame.dispose();
-            mainPageFrame(staffID);
+            String firstName = firstNameField.getText();
+            String lastName = lastNameField.getText();
+            String phoneNumber = phoneNumberField.getText();
+            String personalHealthNumber = personalHealthNumberField.getText();
+            String address = addressField.getText();
+            String postalCode = postalCodeField.getText();
+            String city = cityField.getText();
+            String country = countryField.getText();
+            String patientIdentificationNumber = patientIdenficationNumberField.getText();
+
+            // Insert the data into the database
+            try {
+                // Please check your port before run it!!!
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root", "");
+                Statement stmt = con.createStatement();
+
+                String query = "INSERT INTO patient (FIRSTNAME, LASTNAME, PHONENUMBER, PHEALTHNUMBER, ADDRESS, POSTALCODE, CITY, COUNTRY, PIDENTIFICATIONNUMBER) VALUES ('"
+                        +
+                        firstName + "', '" + lastName + "', '" + phoneNumber + "', '" + personalHealthNumber + "', '"
+                        + address + "', '" + postalCode + "', '" + city + "', '" + country + "', '"
+                        + patientIdentificationNumber + "')";
+
+                int rowsAffected = stmt.executeUpdate(query);
+
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(mainPageFrame, "Registration successful");
+                    // Clear the text fields
+                    firstNameField.setText("");
+                    lastNameField.setText("");
+                    phoneNumberField.setText("");
+                    personalHealthNumberField.setText("");
+                    addressField.setText("");
+                    postalCodeField.setText("");
+                    cityField.setText("");
+                    countryField.setText("");
+                    patientIdenficationNumberField.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(mainPageFrame, "Registration failed");
+                }
+
+                stmt.close();
+                con.close();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(mainPageFrame, "Error: " + ex.getMessage());
+            }
         });
 
         JPanel consultationPanel = new JPanel();
@@ -196,7 +249,7 @@ public class HMS {
         tabbedPane.addChangeListener(e -> {
             if (tabbedPane.getSelectedIndex() == 4) {
                 mainPageFrame.dispose();
-                loginPage();
+                new HMS();
             }
         });
 
