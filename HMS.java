@@ -255,30 +255,39 @@ public class HMS extends JFrame implements ActionListener {
         // Checkout Page
         JPanel checkoutPanel = new JPanel();
         checkoutPanel.setLayout(null);
-        // Font for Registration Page
+        // Font for Checkout Page
         Font FontCheckoutTitle = new Font(labelFont.getFontName(), Font.PLAIN, 25);
         Font FontCheckoutLabel = new Font(labelFont.getFontName(), Font.PLAIN, 15);
-        // Labels for Registration Page
+        // Labels for Checkout Page
         JLabel CheckoutTitleLabel = new JLabel("Patient Checkout");
         CheckoutTitleLabel.setBounds(320, 20, 300, 30);
         CheckoutTitleLabel.setFont(FontCheckoutTitle);
         JLabel patientIDLabel = new JLabel("Patient ID :");
         patientIDLabel.setBounds(50, 80, 250, 30);
         patientIDLabel.setFont(FontCheckoutLabel);
-        // Text Field for Registration Page
+        // Text Field for Checkout Page
         JTextField patientIDField = new JTextField();
         patientIDField.setBounds(300, 80, 500, 30);
-        // Button for Registration Page
+        // Checkbox for Checkout Page
+        JCheckBox checkBox = new JCheckBox("I had admitted the patient above is ready to check out", false);
+        checkBox.setBounds(230, 150, 500, 30);
+        checkBox.setFont(FontCheckoutLabel);
+        // Button for Checkout Page
         JButton checkoutBtn = new JButton("Check Out");
         checkoutBtn.setBounds(330, 200, 200, 30);
-        // Add components to Registration Page
+        // Add components to Checkout Page
         checkoutPanel.add(CheckoutTitleLabel);
         checkoutPanel.add(patientIDLabel);
         checkoutPanel.add(patientIDField);
+        checkoutPanel.add(checkBox);
         checkoutPanel.add(checkoutBtn);
 
         checkoutBtn.addActionListener(e -> {
-            // Perform registration logic here
+            if (!checkBox.isSelected()) {
+                JOptionPane.showMessageDialog(mainPageFrame, "Please confirm patient checkout");
+                return;
+            }
+
             String PatientID = patientIDField.getText();
 
             // Insert the data into the database
@@ -292,11 +301,13 @@ public class HMS extends JFrame implements ActionListener {
                 int rowsAffected = stmt.executeUpdate(query);
 
                 if (rowsAffected > 0) {
-                    JOptionPane.showMessageDialog(mainPageFrame, "Check out successful");
+                    JOptionPane.showMessageDialog(checkoutPanel, "Checkout successfully");
                     // Clear the text fields
                     patientIDField.setText("");
+                    checkBox.setSelected(false);
                 } else {
-                    JOptionPane.showMessageDialog(mainPageFrame, "Check out failed");
+                    JOptionPane.showMessageDialog(checkoutPanel,
+                            "Checkout failed, please confirm the patient ID is existing!");
                 }
 
                 stmt.close();
