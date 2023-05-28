@@ -25,18 +25,18 @@ public class HMS extends JFrame implements ActionListener {
         setTitle("Log In");
         setLayout(null);
         // Staff ID
-        staffIDLabel = new JLabel("Staff ID");
-        staffIDLabel.setBounds(60, 30, 300, 25);
+        staffIDLabel = new JLabel("Username :");
+        staffIDLabel.setBounds(45, 30, 300, 25);
         staffIDField = new JTextField();
-        staffIDField.setBounds(160, 30, 250, 25);
+        staffIDField.setBounds(130, 30, 250, 25);
         // Password
-        passwordLabel = new JLabel("Password");
-        passwordLabel.setBounds(60, 80, 300, 25);
+        passwordLabel = new JLabel("Password :");
+        passwordLabel.setBounds(45, 80, 300, 25);
         passwordField = new JPasswordField();
-        passwordField.setBounds(160, 80, 250, 25);
+        passwordField.setBounds(130, 80, 250, 25);
         // Button
         loginBtn = new JButton("Login");
-        loginBtn.setBounds(175, 140, 150, 25);
+        loginBtn.setBounds(145, 150, 150, 25);
         // cancelBtn = new JButton("Cancel");
         // cancelBtn.setBounds(130, 140, 80, 25);
         add(staffIDLabel);
@@ -51,7 +51,7 @@ public class HMS extends JFrame implements ActionListener {
         setResizable(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
-        setSize(500, 250);
+        setSize(450, 250);
         setLocationRelativeTo(null);
     }
 
@@ -74,7 +74,7 @@ public class HMS extends JFrame implements ActionListener {
                     dispose(); // Close login window
                     mainPageFrame(null, username);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Invalid username or password");
+                    JOptionPane.showMessageDialog(this, "Wrong username or password");
                 }
                 // Clean up resources
                 rs.close();
@@ -122,52 +122,59 @@ public class HMS extends JFrame implements ActionListener {
         JLabel phoneNumberLabel = new JLabel("Phone Number :");
         phoneNumberLabel.setBounds(50, 180, 250, 30);
         phoneNumberLabel.setFont(FontRegistrationLabel);
+        JLabel dateOfBirthLabel = new JLabel("Date of Birth (yyyy-mm-dd) :");
+        dateOfBirthLabel.setBounds(50, 230, 250, 30);
+        dateOfBirthLabel.setFont(FontRegistrationLabel);
         JLabel personalHealthNumberLabel = new JLabel("Personal Health Number :");
-        personalHealthNumberLabel.setBounds(50, 230, 250, 30);
+        personalHealthNumberLabel.setBounds(50, 280, 250, 30);
         personalHealthNumberLabel.setFont(FontRegistrationLabel);
         JLabel addressLabel = new JLabel("Address :");
-        addressLabel.setBounds(50, 280, 250, 30);
+        addressLabel.setBounds(50, 330, 250, 30);
         addressLabel.setFont(FontRegistrationLabel);
         JLabel postalCodeLabel = new JLabel("Postal Code :");
-        postalCodeLabel.setBounds(50, 330, 250, 30);
+        postalCodeLabel.setBounds(50, 380, 250, 30);
         postalCodeLabel.setFont(FontRegistrationLabel);
         JLabel cityLabel = new JLabel("City :");
-        cityLabel.setBounds(50, 380, 250, 30);
+        cityLabel.setBounds(50, 430, 250, 30);
         cityLabel.setFont(FontRegistrationLabel);
         JLabel countryLabel = new JLabel("Country :");
-        countryLabel.setBounds(50, 430, 250, 30);
+        countryLabel.setBounds(50, 480, 250, 30);
         countryLabel.setFont(FontRegistrationLabel);
         JLabel patientIdenficationNumberLabel = new JLabel("Patient Idenfication Number :");
-        patientIdenficationNumberLabel.setBounds(50, 480, 250, 30);
+        patientIdenficationNumberLabel.setBounds(50, 530, 250, 30);
         patientIdenficationNumberLabel.setFont(FontRegistrationLabel);
         // Text Field for Registration Page
         JTextField firstNameField = new JTextField();
         firstNameField.setBounds(300, 80, 500, 30);
         JTextField lastNameField = new JTextField();
         lastNameField.setBounds(300, 130, 500, 30);
+        JTextField dateOfBirthField = new JTextField();
+        dateOfBirthField.setBounds(300, 230, 500, 30);
         JTextField phoneNumberField = new JTextField();
         phoneNumberField.setBounds(300, 180, 500, 30);
         JTextField personalHealthNumberField = new JTextField();
-        personalHealthNumberField.setBounds(300, 230, 500, 30);
+        personalHealthNumberField.setBounds(300, 280, 500, 30);
         JTextField addressField = new JTextField();
-        addressField.setBounds(300, 280, 500, 30);
+        addressField.setBounds(300, 330, 500, 30);
         JTextField postalCodeField = new JTextField();
-        postalCodeField.setBounds(300, 330, 500, 30);
+        postalCodeField.setBounds(300, 380, 500, 30);
         JTextField cityField = new JTextField();
-        cityField.setBounds(300, 380, 500, 30);
+        cityField.setBounds(300, 430, 500, 30);
         JTextField countryField = new JTextField();
-        countryField.setBounds(300, 430, 500, 30);
+        countryField.setBounds(300, 480, 500, 30);
         JTextField patientIdenficationNumberField = new JTextField();
-        patientIdenficationNumberField.setBounds(300, 480, 500, 30);
+        patientIdenficationNumberField.setBounds(300, 530, 500, 30);
         // Button for Registration Page
         JButton registerBtn = new JButton("Register");
-        registerBtn.setBounds(330, 560, 200, 30);
+        registerBtn.setBounds(330, 610, 200, 30);
         // Add components to Registration Page
         registrationPanel.add(registrationTitleLabel);
         registrationPanel.add(firstNameLabel);
         registrationPanel.add(firstNameField);
         registrationPanel.add(lastNameLabel);
         registrationPanel.add(lastNameField);
+        registrationPanel.add(dateOfBirthLabel);
+        registrationPanel.add(dateOfBirthField);
         registrationPanel.add(phoneNumberLabel);
         registrationPanel.add(phoneNumberField);
         registrationPanel.add(personalHealthNumberLabel);
@@ -188,6 +195,7 @@ public class HMS extends JFrame implements ActionListener {
             // Perform registration logic here
             String firstName = firstNameField.getText();
             String lastName = lastNameField.getText();
+            String dateOfBirth = dateOfBirthField.getText();
             String phoneNumber = phoneNumberField.getText();
             String personalHealthNumber = personalHealthNumberField.getText();
             String address = addressField.getText();
@@ -202,9 +210,10 @@ public class HMS extends JFrame implements ActionListener {
                 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root", "");
                 Statement stmt = con.createStatement();
 
-                String query = "INSERT INTO patient (FIRSTNAME, LASTNAME, PHONENUMBER, PHEALTHNUMBER, ADDRESS, POSTALCODE, CITY, COUNTRY, PIDENTIFICATIONNUMBER) VALUES ('"
+                String query = "INSERT INTO patient (FIRSTNAME, LASTNAME, DATEOFBIRTH, PHONENUMBER, PHEALTHNUMBER, ADDRESS, POSTALCODE, CITY, COUNTRY, PIDENTIFICATIONNUMBER) VALUES ('"
                         +
-                        firstName + "', '" + lastName + "', '" + phoneNumber + "', '" + personalHealthNumber + "', '"
+                        firstName + "', '" + lastName + "', '" + dateOfBirth + "', '" + phoneNumber + "', '"
+                        + personalHealthNumber + "', '"
                         + address + "', '" + postalCode + "', '" + city + "', '" + country + "', '"
                         + patientIdentificationNumber + "')";
 
@@ -222,6 +231,7 @@ public class HMS extends JFrame implements ActionListener {
                     cityField.setText("");
                     countryField.setText("");
                     patientIdenficationNumberField.setText("");
+                    dateOfBirthField.setText("");
                 } else {
                     JOptionPane.showMessageDialog(mainPageFrame, "Registration failed");
                 }
@@ -233,6 +243,7 @@ public class HMS extends JFrame implements ActionListener {
             }
         });
 
+        // Consultation Page
         JPanel consultationPanel = new JPanel();
         JLabel consultationPanel_1 = new JLabel("This is the consultation panel");
         consultationPanel.add(consultationPanel_1);
@@ -241,10 +252,61 @@ public class HMS extends JFrame implements ActionListener {
         JLabel mmmPanel_1 = new JLabel("This is the medical matter management panel");
         mmmPanel.add(mmmPanel_1);
 
+        // Checkout Page
         JPanel checkoutPanel = new JPanel();
-        JLabel checkoutPanel_1 = new JLabel("This is the check out panel");
-        checkoutPanel.add(checkoutPanel_1);
+        checkoutPanel.setLayout(null);
+        // Font for Registration Page
+        Font FontCheckoutTitle = new Font(labelFont.getFontName(), Font.PLAIN, 25);
+        Font FontCheckoutLabel = new Font(labelFont.getFontName(), Font.PLAIN, 15);
+        // Labels for Registration Page
+        JLabel CheckoutTitleLabel = new JLabel("Patient Checkout");
+        CheckoutTitleLabel.setBounds(320, 20, 300, 30);
+        CheckoutTitleLabel.setFont(FontCheckoutTitle);
+        JLabel patientIDLabel = new JLabel("Patient ID :");
+        patientIDLabel.setBounds(50, 80, 250, 30);
+        patientIDLabel.setFont(FontCheckoutLabel);
+        // Text Field for Registration Page
+        JTextField patientIDField = new JTextField();
+        patientIDField.setBounds(300, 80, 500, 30);
+        // Button for Registration Page
+        JButton checkoutBtn = new JButton("Check Out");
+        checkoutBtn.setBounds(330, 200, 200, 30);
+        // Add components to Registration Page
+        checkoutPanel.add(CheckoutTitleLabel);
+        checkoutPanel.add(patientIDLabel);
+        checkoutPanel.add(patientIDField);
+        checkoutPanel.add(checkoutBtn);
 
+        checkoutBtn.addActionListener(e -> {
+            // Perform registration logic here
+            String PatientID = patientIDField.getText();
+
+            // Insert the data into the database
+            try {
+                // Please check your port before run it!!!
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root", "");
+                Statement stmt = con.createStatement();
+
+                String query = "DELETE FROM patient WHERE PATIENTID = '" + PatientID + "'";
+
+                int rowsAffected = stmt.executeUpdate(query);
+
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(mainPageFrame, "Check out successful");
+                    // Clear the text fields
+                    patientIDField.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(mainPageFrame, "Check out failed");
+                }
+
+                stmt.close();
+                con.close();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(mainPageFrame, "Error: " + ex.getMessage());
+            }
+        });
+
+        // Logout Page
         JPanel logoutPanel = new JPanel();
         tabbedPane.addChangeListener(e -> {
             if (tabbedPane.getSelectedIndex() == 4) {
@@ -268,7 +330,7 @@ public class HMS extends JFrame implements ActionListener {
         mainPageFrame.getContentPane().add(systemTitleLabel, BorderLayout.NORTH);
 
         // Set the size and close operation for the frame
-        mainPageFrame.setSize(1150, 750);
+        mainPageFrame.setSize(1150, 800);
         mainPageFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainPageFrame.setLocationRelativeTo(null);
         mainPageFrame.setResizable(false);
