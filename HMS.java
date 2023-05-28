@@ -9,8 +9,11 @@ import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 
 public class HMS extends JFrame implements ActionListener {
+
     public static void main(String[] args) {
         new HMS();
     }
@@ -34,16 +37,15 @@ public class HMS extends JFrame implements ActionListener {
         passwordLabel.setBounds(45, 80, 300, 25);
         passwordField = new JPasswordField();
         passwordField.setBounds(130, 80, 250, 25);
-        // Button
+        // Login Button
         loginBtn = new JButton("Login");
         loginBtn.setBounds(145, 150, 150, 25);
-        // cancelBtn = new JButton("Cancel");
-        // cancelBtn.setBounds(130, 140, 80, 25);
         add(staffIDLabel);
         add(staffIDField);
         add(passwordLabel);
         add(passwordField);
         add(loginBtn);
+
         // Add action listener to buttons
         loginBtn.addActionListener(this);
 
@@ -71,7 +73,7 @@ public class HMS extends JFrame implements ActionListener {
                         "SELECT * FROM login WHERE NAME='" + username + "' AND PASSWORD ='" + password + "'");
                 if (rs.next()) {
                     JOptionPane.showMessageDialog(this, "Login successful");
-                    dispose(); // Close login window
+                    dispose();
                     mainPageFrame(null, username);
                 } else {
                     JOptionPane.showMessageDialog(this, "Wrong username or password");
@@ -97,18 +99,22 @@ public class HMS extends JFrame implements ActionListener {
         Border emptyBorder = BorderFactory.createEmptyBorder(20, 0, 15, 0);
         systemTitleLabel.setBorder(emptyBorder);
 
+        // Font for Title
         Font labelFont = systemTitleLabel.getFont();
         Font newFont = new Font(labelFont.getFontName(), Font.PLAIN, 20);
         systemTitleLabel.setFont(newFont);
 
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
+        tabbedPane.setBackground(Color.lightGray);
 
         // Registration Page
         JPanel registrationPanel = new JPanel();
         registrationPanel.setLayout(null);
+
         // Font for Registration Page
         Font FontRegistrationTitle = new Font(labelFont.getFontName(), Font.PLAIN, 25);
         Font FontRegistrationLabel = new Font(labelFont.getFontName(), Font.PLAIN, 15);
+
         // Labels for Registration Page
         JLabel registrationTitleLabel = new JLabel("Patient Registration");
         registrationTitleLabel.setBounds(320, 20, 300, 30);
@@ -143,6 +149,7 @@ public class HMS extends JFrame implements ActionListener {
         JLabel patientIdenficationNumberLabel = new JLabel("Patient Idenfication Number :");
         patientIdenficationNumberLabel.setBounds(50, 530, 250, 30);
         patientIdenficationNumberLabel.setFont(FontRegistrationLabel);
+
         // Text Field for Registration Page
         JTextField firstNameField = new JTextField();
         firstNameField.setBounds(300, 80, 500, 30);
@@ -164,9 +171,11 @@ public class HMS extends JFrame implements ActionListener {
         countryField.setBounds(300, 480, 500, 30);
         JTextField patientIdenficationNumberField = new JTextField();
         patientIdenficationNumberField.setBounds(300, 530, 500, 30);
+
         // Button for Registration Page
         JButton registerBtn = new JButton("Register");
         registerBtn.setBounds(330, 610, 200, 30);
+
         // Add components to Registration Page
         registrationPanel.add(registrationTitleLabel);
         registrationPanel.add(firstNameLabel);
@@ -192,7 +201,7 @@ public class HMS extends JFrame implements ActionListener {
         registrationPanel.add(registerBtn);
 
         registerBtn.addActionListener(e -> {
-            // Perform registration logic here
+
             String firstName = firstNameField.getText();
             String lastName = lastNameField.getText();
             String dateOfBirth = dateOfBirthField.getText();
@@ -245,9 +254,63 @@ public class HMS extends JFrame implements ActionListener {
 
         // Consultation Page
         JPanel consultationPanel = new JPanel();
-        JLabel consultationPanel_1 = new JLabel("This is the consultation panel");
-        consultationPanel.add(consultationPanel_1);
+        tabbedPane.addChangeListener(e1 -> {
+            if (tabbedPane.getSelectedIndex() == 1) {
+                try {
+                    // Establish a database connection
+                    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root", "");
 
+                    // Execute the query to select the required columns from the table
+                    String query = "SELECT PATIENTID, FIRSTNAME, LASTNAME, PHEALTHNUMBER FROM patient";
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery(query);
+
+                    // Create the table model with column names
+                    String[] columnNames = { "Patient ID", "First Name", "Last Name", "Personal Health Number" };
+                    DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+
+                    // Populate the table model with data from the result set
+                    while (resultSet.next()) {
+                        String patientId = resultSet.getString("PATIENTID");
+                        String firstName = resultSet.getString("FIRSTNAME");
+                        String lastName = resultSet.getString("LASTNAME");
+                        String PHN = resultSet.getString("PHEALTHNUMBER");
+
+                        Object[] rowData = { patientId, firstName, lastName, PHN };
+                        tableModel.addRow(rowData);
+                    }
+                    // Create the table using the table model
+                    JTable patientTable = new JTable(tableModel);
+                    DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+                    centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+                    patientTable.setDefaultRenderer(Object.class, centerRenderer);
+                    patientTable.setPreferredScrollableViewportSize(new Dimension(860, 100));
+                    patientTable.getTableHeader().setFont(new Font(Font.SANS_SERIF, Font.BOLD, 17));
+                    Font tableFont = new Font(patientTable.getFont().getName(), Font.PLAIN, 17);
+                    patientTable.setFont(tableFont);
+                    JScrollPane scrollPane = new JScrollPane(patientTable);
+                    scrollPane.setPreferredSize(new Dimension(860, 200));
+                    consultationPanel.add(scrollPane, BorderLayout.CENTER);
+
+                    // Remove the existing table from the consultationPanel
+                    consultationPanel.removeAll();
+
+                    // Add the new scroll pane with the table to the consultationPanel
+                    consultationPanel.add(scrollPane, BorderLayout.CENTER);
+                    consultationPanel.revalidate();
+                    consultationPanel.repaint();
+
+                    // Close the database resources
+                    resultSet.close();
+                    statement.close();
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // Medical Matter Management Page
         JPanel mmmPanel = new JPanel();
         JLabel mmmPanel_1 = new JLabel("This is the medical matter management panel");
         mmmPanel.add(mmmPanel_1);
@@ -255,9 +318,11 @@ public class HMS extends JFrame implements ActionListener {
         // Checkout Page
         JPanel checkoutPanel = new JPanel();
         checkoutPanel.setLayout(null);
+
         // Font for Checkout Page
         Font FontCheckoutTitle = new Font(labelFont.getFontName(), Font.PLAIN, 25);
         Font FontCheckoutLabel = new Font(labelFont.getFontName(), Font.PLAIN, 15);
+
         // Labels for Checkout Page
         JLabel CheckoutTitleLabel = new JLabel("Patient Checkout");
         CheckoutTitleLabel.setBounds(320, 20, 300, 30);
@@ -265,16 +330,20 @@ public class HMS extends JFrame implements ActionListener {
         JLabel patientIDLabel = new JLabel("Patient ID :");
         patientIDLabel.setBounds(50, 80, 250, 30);
         patientIDLabel.setFont(FontCheckoutLabel);
+
         // Text Field for Checkout Page
         JTextField patientIDField = new JTextField();
         patientIDField.setBounds(300, 80, 500, 30);
+
         // Checkbox for Checkout Page
         JCheckBox checkBox = new JCheckBox("I had admitted the patient above is ready to check out", false);
         checkBox.setBounds(230, 150, 500, 30);
         checkBox.setFont(FontCheckoutLabel);
+
         // Button for Checkout Page
         JButton checkoutBtn = new JButton("Check Out");
         checkoutBtn.setBounds(330, 200, 200, 30);
+
         // Add components to Checkout Page
         checkoutPanel.add(CheckoutTitleLabel);
         checkoutPanel.add(patientIDLabel);
