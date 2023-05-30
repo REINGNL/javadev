@@ -57,30 +57,45 @@ public class HMS extends JFrame implements ActionListener {
         setLocationRelativeTo(null);
     }
 
-    public void actionPerformed(ActionEvent Btn) {
-        if (Btn.getSource() == loginBtn) {
+    public void actionPerformed(ActionEvent btn) {
+        if (btn.getSource() == loginBtn) {
             String username = staffIDField.getText();
             String password = new String(passwordField.getPassword());
             try {
                 // Connect to MySQL database
                 // Please check your port before run it!!!
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root",
-                        "");
-                // Create statement object
-                Statement stmt = con.createStatement();
-                // Execute SQL query to verify user
-                ResultSet rs = stmt.executeQuery(
-                        "SELECT * FROM login WHERE NAME='" + username + "' AND PASSWORD ='" + password + "'");
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+
+                // Create prepared statement
+                String query = "SELECT * FROM login WHERE NAME=? AND PASSWORD=?";
+                PreparedStatement pstmt = con.prepareStatement(query);
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);
+
+                // Execute the query
+                ResultSet rs = pstmt.executeQuery();
+
                 if (rs.next()) {
-                    JOptionPane.showMessageDialog(this, "Login successful");
-                    dispose();
-                    mainPageFrame(null, username);
+                    // Retrieve the username and password from the result set
+                    String retrievedUsername = rs.getString("NAME");
+                    String retrievedPassword = rs.getString("PASSWORD");
+
+                    if (username.equals(retrievedUsername) && password.equals(retrievedPassword) && !username.isEmpty()
+                            && !password.isEmpty()) {
+                        // Display the retrieved values
+                        JOptionPane.showMessageDialog(this, "Login successfully");
+                        dispose();
+                        mainPageFrame(null, username);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Please enter your username and password");
+                    }
                 } else {
                     JOptionPane.showMessageDialog(this, "Wrong username or password");
                 }
+
                 // Clean up resources
                 rs.close();
-                stmt.close();
+                pstmt.close();
                 con.close();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
@@ -216,7 +231,7 @@ public class HMS extends JFrame implements ActionListener {
             // Insert the data into the database
             try {
                 // Please check your port before run it!!!
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root", "");
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
                 Statement stmt = con.createStatement();
 
                 String query = "INSERT INTO patient (FIRSTNAME, LASTNAME, DATEOFBIRTH, PHONENUMBER, PHEALTHNUMBER, ADDRESS, POSTALCODE, CITY, COUNTRY, PIDENTIFICATIONNUMBER) VALUES ('"
@@ -258,7 +273,7 @@ public class HMS extends JFrame implements ActionListener {
             if (tabbedPane.getSelectedIndex() == 1) {
                 try {
                     // Establish a database connection
-                    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root", "");
+                    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
 
                     // Execute the query to select the required columns from the table
                     String query = "SELECT PATIENTID, FIRSTNAME, LASTNAME, PHEALTHNUMBER FROM patient";
@@ -363,7 +378,7 @@ public class HMS extends JFrame implements ActionListener {
             // Insert the data into the database
             try {
                 // Please check your port before run it!!!
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/hms", "root", "");
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
                 Statement stmt = con.createStatement();
 
                 String query = "DELETE FROM patient WHERE PATIENTID = '" + PatientID + "'";
