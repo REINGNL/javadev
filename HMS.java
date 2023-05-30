@@ -288,6 +288,7 @@ public class HMS extends JFrame implements ActionListener {
                     patientTable.getTableHeader().setFont(new Font(Font.SANS_SERIF, Font.BOLD, 17));
                     Font tableFont = new Font(patientTable.getFont().getName(), Font.PLAIN, 17);
                     patientTable.setFont(tableFont);
+                    patientTable.setEnabled(false);
                     JScrollPane scrollPane = new JScrollPane(patientTable);
                     scrollPane.setPreferredSize(new Dimension(860, 205));
                     consultationPanel.add(scrollPane, BorderLayout.CENTER);
