@@ -67,7 +67,7 @@ public class HMS extends JFrame implements ActionListener {
                 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
 
                 // Create prepared statement
-                String query = "SELECT * FROM login WHERE NAME=? AND PASSWORD=?";
+                String query = "SELECT * FROM staff WHERE USERNAME=? AND PASSWORD=?";
                 PreparedStatement pstmt = con.prepareStatement(query);
                 pstmt.setString(1, username);
                 pstmt.setString(2, password);
@@ -77,12 +77,11 @@ public class HMS extends JFrame implements ActionListener {
 
                 if (rs.next()) {
                     // Retrieve the username and password from the result set
-                    String retrievedUsername = rs.getString("NAME");
+                    String retrievedUsername = rs.getString("USERNAME");
                     String retrievedPassword = rs.getString("PASSWORD");
 
                     if (username.equals(retrievedUsername) && password.equals(retrievedPassword) && !username.isEmpty()
                             && !password.isEmpty()) {
-                        // Display the retrieved values
                         JOptionPane.showMessageDialog(this, "Login successfully");
                         dispose();
                         mainPageFrame(null, username);
@@ -92,7 +91,6 @@ public class HMS extends JFrame implements ActionListener {
                 } else {
                     JOptionPane.showMessageDialog(this, "Wrong username or password");
                 }
-
                 // Clean up resources
                 rs.close();
                 pstmt.close();
