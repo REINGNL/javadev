@@ -57,43 +57,30 @@ public class HMS extends JFrame implements ActionListener {
         setLocationRelativeTo(null);
     }
 
-    public void actionPerformed(ActionEvent btn) {
-        if (btn.getSource() == loginBtn) {
+    public void actionPerformed(ActionEvent Btn) {
+        if (Btn.getSource() == loginBtn) {
             String username = staffIDField.getText();
             String password = new String(passwordField.getPassword());
             try {
                 // Connect to MySQL database
                 // Please check your port before run it!!!
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
-
-                // Create prepared statement
-                String query = "SELECT * FROM staff WHERE USERNAME=? AND PASSWORD=?";
-                PreparedStatement pstmt = con.prepareStatement(query);
-                pstmt.setString(1, username);
-                pstmt.setString(2, password);
-
-                // Execute the query
-                ResultSet rs = pstmt.executeQuery();
-
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root",
+                        "");
+                // Create statement object
+                Statement stmt = con.createStatement();
+                // Execute SQL query to verify user
+                ResultSet rs = stmt.executeQuery(
+                        "SELECT * FROM staff WHERE USERNAME='" + username + "' AND PASSWORD ='" + password + "'");
                 if (rs.next()) {
-                    // Retrieve the username and password from the result set
-                    String retrievedUsername = rs.getString("USERNAME");
-                    String retrievedPassword = rs.getString("PASSWORD");
-
-                    if (username.equals(retrievedUsername) && password.equals(retrievedPassword) && !username.isEmpty()
-                            && !password.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Login successfully");
-                        dispose();
-                        mainPageFrame(null, username);
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Please enter your username and password");
-                    }
+                    JOptionPane.showMessageDialog(this, "Login successful");
+                    dispose();
+                    mainPageFrame(null, username);
                 } else {
                     JOptionPane.showMessageDialog(this, "Wrong username or password");
                 }
                 // Clean up resources
                 rs.close();
-                pstmt.close();
+                stmt.close();
                 con.close();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
