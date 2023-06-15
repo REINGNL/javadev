@@ -1,0 +1,16 @@
+.horizontal-tabs .tab {
+    -fx-background-insets: 2 -1 -1 -1;
+    -fx-border-width: 1 0 1 1;
+    -fx-padding: 0 20;
+    -fx-pref-height: 200px;
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+}
+
+.horizontal-tabs .tab-label {
+    -fx-rotate: 90;
+}
+
+.horizontal-tabs .tab .tab-label {
+    -fx-padding: 0 10;
+}
