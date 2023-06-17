@@ -26,14 +26,15 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 
 public class HMS extends Application {
 
@@ -233,28 +234,6 @@ public class HMS extends Application {
         Label timeLabel = new Label();
         Label dateWeek = new Label();
 
-        // Clock function
-        Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(1), event -> {
-                    Date currentDate = new Date();
-
-                    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-                    String time = timeFormat.format(currentDate);
-
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                    String date = dateFormat.format(currentDate);
-
-                    SimpleDateFormat dayFormat = new SimpleDateFormat("E");
-                    String dayOfWeek = dayFormat.format(currentDate);
-
-                    Platform.runLater(() -> {
-                        timeLabel.setText(time);
-                        dateWeek.setText(date + ", " + dayOfWeek);
-                    });
-                }));
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.play();
-
         // Create a Rectangle to represent the card
         Rectangle card_1 = new Rectangle(250, 100);
         card_1.setFill(Color.WHITE);
@@ -365,6 +344,7 @@ public class HMS extends Application {
             alert.showAndWait();
         }
 
+        getCurrentTime(timeLabel, dateWeek);
         VBox clockLayout = new VBox(5);
         clockLayout.setPrefSize(250, 150);
         clockLayout.setAlignment(Pos.CENTER);
@@ -398,7 +378,7 @@ public class HMS extends Application {
         lastNameLabel.setFont(registerLabelFont);
         Label phoneNumberLabel = new Label("Phone Number");
         phoneNumberLabel.setFont(registerLabelFont);
-        Label dateOfBirthLabel = new Label("Date of Birth (yyyy-mm-dd)");
+        Label dateOfBirthLabel = new Label("Date of Birth");
         dateOfBirthLabel.setFont(registerLabelFont);
         Label personalHealthNumberLabel = new Label("Personal Health Number");
         personalHealthNumberLabel.setFont(registerLabelFont);
@@ -410,7 +390,7 @@ public class HMS extends Application {
         cityLabel.setFont(registerLabelFont);
         Label countryLabel = new Label("Country");
         countryLabel.setFont(registerLabelFont);
-        Label patientIdenficationNumberLabel = new Label("Patient Idenfication Number :");
+        Label patientIdenficationNumberLabel = new Label("Patient Idenfication Number");
         patientIdenficationNumberLabel.setFont(registerLabelFont);
 
         // Textfield
@@ -420,6 +400,7 @@ public class HMS extends Application {
         lastNameField.setFont(registerLabelFont);
         TextField dateOfBirthField = new TextField();
         dateOfBirthField.setFont(registerLabelFont);
+        dateOfBirthField.setPromptText("yyyy-mm-dd");
         TextField phoneNumberField = new TextField();
         phoneNumberField.setFont(registerLabelFont);
         TextField personalHealthNumberField = new TextField();
@@ -608,20 +589,26 @@ public class HMS extends Application {
         });
     }
 
-    static void getCurrentTime() {
-        Date currentDate = new Date();
+    static void getCurrentTime(Label timeLabel, Label dateWeek) {
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.seconds(1), event -> {
+                    Date currentDate = new Date();
 
-        SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm:ss a");
-        String time = timeFormat.format(currentDate);
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+                    String time = timeFormat.format(currentDate);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM");
-        String date = dateFormat.format(currentDate);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                    String date = dateFormat.format(currentDate);
 
-        SimpleDateFormat dayFormat = new SimpleDateFormat("E");
-        String dayOfWeek = dayFormat.format(currentDate);
+                    SimpleDateFormat dayFormat = new SimpleDateFormat("E");
+                    String dayOfWeek = dayFormat.format(currentDate);
 
-        // System.out.println("Time: " + time);
-        // System.out.println("Date: " + date);
-        // System.out.println("Day: " + dayOfWeek);
+                    Platform.runLater(() -> {
+                        timeLabel.setText(time);
+                        dateWeek.setText(date + ", " + dayOfWeek);
+                    });
+                }));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
     }
 }
