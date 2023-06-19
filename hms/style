@@ -1,6 +1,6 @@
 .horizontal-tabs .tab {
     -fx-background-insets: 2 -1 -1 -1;
-    -fx-border-width: 1 0 1 1;
+    /* -fx-border-width: 1 0 1 1; */
     -fx-padding: 0 20;
     -fx-pref-height: 200px;
     -fx-font-size: 20;
@@ -11,11 +11,15 @@
 
 .horizontal-tabs .tab-label {
     -fx-rotate: 90;
-    -fx-padding: 0 10;
+    /* -fx-padding: 0 5; */
 }
 
 .horizontal-tabs .tab-header-area {
     -fx-padding: -1 0 0 0;
+}
+
+.TabIcon {
+    -fx-rotate: 0;
 }
 
 .timeClock {

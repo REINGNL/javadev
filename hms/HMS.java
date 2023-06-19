@@ -11,6 +11,9 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -26,15 +29,15 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+
+import com.mysql.cj.jdbc.result.ResultSetMetaData;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
 
 public class HMS extends Application {
 
@@ -130,7 +133,7 @@ public class HMS extends Application {
                     loginPage.close();
 
                     // Open the main page
-                    mainPage(rs.getString("USERNAME"));
+                    mainPage(rs.getString("USERNAME"), rs.getString("EMPLOYEETYPE"));
                 } else {
                     // Show an error message for invalid credentials
                     Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -156,7 +159,7 @@ public class HMS extends Application {
     }
 
     // Main Page
-    private void mainPage(String staffID) {
+    private void mainPage(String staffID, String EmployeeType) {
         Stage mainPageStage = new Stage();
         mainPageStage.setTitle("Hospital Management System");
 
@@ -172,6 +175,15 @@ public class HMS extends Application {
 
         // Overview Page
         Tab overviewTab = new Tab("Overview");
+
+        // Overview Tab Icon
+        Image overviewIcon = new Image("assets/icon/overview-logo.png");
+        ImageView overviewIconView = new ImageView(overviewIcon);
+        overviewIconView.setFitWidth(30);
+        overviewIconView.setFitHeight(30);
+        overviewIconView.getStyleClass().add("TabIcon");
+        overviewTab.setGraphic(overviewIconView);
+
         VBox overviewLayout = new VBox();
         overviewLayout.setSpacing(10);
         overviewLayout.setPadding(new Insets(20));
@@ -181,6 +193,15 @@ public class HMS extends Application {
 
         // Register Page
         Tab registerTab = new Tab("Registration");
+
+        // Register Tab Icon
+        Image registerIcon = new Image("assets/icon/register-logo.png");
+        ImageView registerIconView = new ImageView(registerIcon);
+        registerIconView.setFitWidth(30);
+        registerIconView.setFitHeight(30);
+        registerIconView.getStyleClass().add("TabIcon");
+        registerTab.setGraphic(registerIconView);
+
         VBox registerLayout = new VBox();
         registerLayout.setSpacing(10);
         registerLayout.setPadding(new Insets(20));
@@ -190,14 +211,50 @@ public class HMS extends Application {
 
         // Consultation Page
         Tab consultationTab = new Tab("Consultation");
+
+        // Consultation Tab Icon
+        Image consultationIcon = new Image("assets/icon/consultation-logo.png");
+        ImageView consultationIconView = new ImageView(consultationIcon);
+        consultationIconView.setFitWidth(30);
+        consultationIconView.setFitHeight(30);
+        consultationIconView.getStyleClass().add("TabIcon");
+        consultationTab.setGraphic(consultationIconView);
+
         VBox consultationLayout = new VBox();
         consultationLayout.setPadding(new Insets(20));
         consultationPage(consultationLayout);
         consultationTab.setContent(consultationLayout);
         consultationTab.setClosable(false);
 
+        // Patient Page
+        Tab patientTab = new Tab("Patient List");
+
+        // Patient Tab Icon
+        Image patientIcon = new Image("assets/icon/patient-logo.png");
+        ImageView patientIconnView = new ImageView(patientIcon);
+        patientIconnView.setFitWidth(30);
+        patientIconnView.setFitHeight(30);
+        patientIconnView.getStyleClass().add("TabIcon");
+        patientTab.setGraphic(patientIconnView);
+
+        VBox patientLayout = new VBox();
+        patientLayout.setPadding(new Insets(20));
+        patientLayout.setSpacing(10);
+        patientPage(patientLayout);
+        patientTab.setContent(patientLayout);
+        patientTab.setClosable(false);
+
         // Checkout Page
         Tab checkoutTab = new Tab("Check Out");
+
+        // Checkout Tab Icon
+        Image checkoutIcon = new Image("assets/icon/checkout-logo.png");
+        ImageView checkoutIconView = new ImageView(checkoutIcon);
+        checkoutIconView.setFitWidth(30);
+        checkoutIconView.setFitHeight(30);
+        checkoutIconView.getStyleClass().add("TabIcon");
+        checkoutTab.setGraphic(checkoutIconView);
+
         VBox checkoutLayout = new VBox();
         checkoutLayout.setPadding(new Insets(20));
         checkoutLayout.setSpacing(10);
@@ -207,11 +264,21 @@ public class HMS extends Application {
 
         // Logout Page
         Tab logoutTab = new Tab("Logout");
+
+        // Logout Tab Icon
+        Image logoutIcon = new Image("assets/icon/logout-logo.png");
+        ImageView logoutIconView = new ImageView(logoutIcon);
+        logoutIconView.setFitWidth(30);
+        logoutIconView.setFitHeight(30);
+        logoutIconView.getStyleClass().add("TabIcon");
+        logoutTab.setGraphic(logoutIconView);
+
         logoutTab.setClosable(false);
         logout(logoutTab, mainPageStage);
 
         // Add the tabs to the tab pane
-        tabPane.getTabs().addAll(overviewTab, registerTab, consultationTab, checkoutTab, logoutTab);
+        tabPane_verify(EmployeeType, tabPane, overviewTab, registerTab, consultationTab, patientTab, checkoutTab,
+                logoutTab);
 
         VBox mainLayout = new VBox();
         mainLayout.setAlignment(Pos.TOP_LEFT);
@@ -224,7 +291,31 @@ public class HMS extends Application {
         mainPageStage.show();
     }
 
-    static void overviewPage(VBox overviewLayout) {
+    static void tabPane_verify(String EmployeeType, TabPane tabPane, Tab overviewTab, Tab registerTab,
+            Tab consultationTab, Tab patientTab, Tab checkoutTab,
+            Tab logoutTab) {
+
+        if (EmployeeType.equals("Front-desk")) {
+            // overviewTab.setDisable(true);
+            consultationTab.setDisable(true);
+            patientTab.setDisable(true);
+            checkoutTab.setDisable(true);
+        } else if (EmployeeType.equals("Nurse")) {
+            registerTab.setDisable(true);
+            checkoutTab.setDisable(true);
+        } else if (EmployeeType.equals("Doctor")) {
+            registerTab.setDisable(true);
+            checkoutTab.setDisable(true);
+        } else if (EmployeeType.equals("Administrator")) {
+            registerTab.setDisable(true);
+            consultationTab.setDisable(true);
+        }
+
+        tabPane.getTabs().addAll(overviewTab, registerTab, consultationTab, patientTab, checkoutTab, logoutTab);
+        // System.out.println(EmployeeType);
+    }
+
+    private static void overviewPage(VBox overviewLayout) {
         // Font
         Font overviewFont_1 = Font.font("Arial", FontWeight.BOLD, 25);
         Font clockFont = Font.font("Arial", FontWeight.BOLD, 40);
@@ -251,51 +342,52 @@ public class HMS extends Application {
         StackPane cardLayout_2 = new StackPane(card_2);
 
         // Get total of doctors
-        try {
-            // Connect to MySQL database
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(
-                    "SELECT COUNT(*) AS Total_Doctor FROM staff WHERE EMPLOYEETYPE='Doctor'");
-            if (rs.next()) {
-                int total = rs.getInt("Total_Doctor");
+        // try {
+        // // Connect to MySQL database
+        // Connection con =
+        // DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+        // Statement stmt = con.createStatement();
+        // ResultSet rs = stmt.executeQuery(
+        // "SELECT COUNT(*) AS Total_Doctor FROM staff WHERE EMPLOYEETYPE='Doctor'");
+        // if (rs.next()) {
+        // int total = rs.getInt("Total_Doctor");
 
-                // Create an ImageView to display the image
-                Image img = new Image("assets/icon/doctor.png");
-                ImageView doctorImgView = new ImageView(img);
-                doctorImgView.setFitWidth(50);
-                doctorImgView.setFitHeight(50);
+        // // Create an ImageView to display the image
+        // Image img = new Image("assets/icon/doctor.png");
+        // ImageView doctorImgView = new ImageView(img);
+        // doctorImgView.setFitWidth(50);
+        // doctorImgView.setFitHeight(50);
 
-                Label doctorImg = new Label();
-                doctorImg.setGraphic(doctorImgView);
-                Label totalLabel = new Label("Total doctor's");
-                totalLabel.setFont(Font.font("Arial", 15));
-                Label countLabel = new Label("" + total);
-                countLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+        // Label doctorImg = new Label();
+        // doctorImg.setGraphic(doctorImgView);
+        // Label totalLabel = new Label("Total doctor's");
+        // totalLabel.setFont(Font.font("Arial", 15));
+        // Label countLabel = new Label("" + total);
+        // countLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
 
-                VBox doctorBox = new VBox(5);
-                doctorBox.getChildren().addAll(doctorImg, totalLabel, countLabel);
-                doctorBox.setPadding(new Insets(0, 20, 0, 20));
-                cardLayout_1.getChildren().add(doctorBox);
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText(null);
-                alert.setContentText("Opps...Something went wrong");
-                alert.showAndWait();
-            }
-            // Clean up resources
-            rs.close();
-            stmt.close();
-            con.close();
-        } catch (Exception a) {
-            a.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText("Error: " + a.getMessage());
-            alert.showAndWait();
-        }
+        // VBox doctorBox = new VBox(5);
+        // doctorBox.getChildren().addAll(doctorImg, totalLabel, countLabel);
+        // doctorBox.setPadding(new Insets(0, 20, 0, 20));
+        // cardLayout_1.getChildren().add(doctorBox);
+        // } else {
+        // Alert alert = new Alert(Alert.AlertType.ERROR);
+        // alert.setTitle("Error");
+        // alert.setHeaderText(null);
+        // alert.setContentText("Opps...Something went wrong");
+        // alert.showAndWait();
+        // }
+        // // Clean up resources
+        // rs.close();
+        // stmt.close();
+        // con.close();
+        // } catch (Exception a) {
+        // a.printStackTrace();
+        // Alert alert = new Alert(Alert.AlertType.ERROR);
+        // alert.setTitle("Error");
+        // alert.setHeaderText(null);
+        // alert.setContentText("Error: " + a.getMessage());
+        // alert.showAndWait();
+        // }
 
         // Get total of nurses
         try {
@@ -323,7 +415,7 @@ public class HMS extends Application {
                 VBox patientBox = new VBox(5);
                 patientBox.getChildren().addAll(patientImg, totalLabel, countLabel);
                 patientBox.setPadding(new Insets(0, 20, 0, 20));
-                cardLayout_2.getChildren().add(patientBox);
+                cardLayout_1.getChildren().add(patientBox);
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
@@ -351,7 +443,8 @@ public class HMS extends Application {
         clockLayout.getChildren().addAll(timeLabel, dateWeek);
 
         VBox availabilityShow = new VBox(5);
-        availabilityShow.getChildren().addAll(cardLayout_1, cardLayout_2);
+        // availabilityShow.getChildren().addAll(cardLayout_1, cardLayout_2)
+        availabilityShow.getChildren().addAll(cardLayout_1);
 
         HBox firstRow = new HBox(20);
         firstRow.getChildren().addAll(clockLayout, availabilityShow);
@@ -363,7 +456,7 @@ public class HMS extends Application {
         overviewLayout.getChildren().add(contentLayout);
     }
 
-    static void registerPage(VBox registerLayout) {
+    private static void registerPage(VBox registerLayout) {
         // Font
         Font registerTitleFont = Font.font("Arial", FontWeight.BOLD, 25);
         Font registerLabelFont = Font.font("Arial", 18);
@@ -500,11 +593,67 @@ public class HMS extends Application {
                 patientIdenficationNumberLabel, patientIdenficationNumberField, btnLayout);
     }
 
-    static void consultationPage(VBox consultationLayout) {
-        consultationLayout.getChildren().add(new Label("Consultation Page"));
+    private static void consultationPage(VBox consultationLayout) {
+        // Font
+        Font consultationTitleFont = Font.font("Arial", FontWeight.BOLD, 25);
+
+        // Label for Consulation Page
+        Label consultationTitle = new Label("Ward Assignation");
+        consultationTitle.setFont(consultationTitleFont);
+
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.setItems(FXCollections.observableArrayList(
+                "Option 1", "Option 2", "Option 3", "Option 4"));
+
+        consultationLayout.getChildren().addAll(consultationTitle, comboBox);
     }
 
-    static void checkoutPage(VBox checkoutLayout) {
+    private static void patientPage(VBox patientLayout) {
+        // Font
+        Font patientTitleFont = Font.font("Arial", FontWeight.BOLD, 25);
+        Font patientLabelFont = Font.font("Arial", 18);
+
+        // Label for Consulation Page
+        Label patientTitle = new Label("Patient List");
+        patientTitle.setFont(patientTitleFont);
+        Label spacing_1 = new Label();
+        Label spacing_2 = new Label();
+
+        TableView<ObservableList<String>> table = new TableView<>();
+        repopulateTable(table, "");
+
+        VBox patientListBox = new VBox(10);
+        patientListBox.getChildren().addAll(table);
+        patientListBox.setPadding(new Insets(0, 20, 0, 20));
+
+        // Search fields
+        TextField searchField = new TextField();
+        searchField.setPromptText("Please search with PatientID or Lastname or PHN");
+        searchField.setFont(patientLabelFont);
+        searchField.setPrefWidth(1450);
+
+        // Search Button
+        Button searchBtn = new Button("Search");
+        searchBtn.setFont(patientLabelFont);
+        searchBtn.setOnAction(event -> repopulateTable(table, searchField.getText()));
+
+        // Refersh Button
+        Button refreshBtn = new Button("Refresh");
+        refreshBtn.setFont(patientLabelFont);
+        refreshBtn.setOnAction(event -> repopulateTable(table, ""));
+
+        HBox searchBox = new HBox(10);
+        searchBox.setAlignment(Pos.CENTER);
+        searchBox.getChildren().addAll(searchField, searchBtn, refreshBtn);
+        patientLayout.getChildren().addAll(patientTitle, spacing_1, searchBox, spacing_2, patientListBox);
+
+        // Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(10), event ->
+        // repopulateTable(table, "")));
+        // timeline.setCycleCount(Timeline.INDEFINITE);
+        // timeline.play();
+    }
+
+    private static void checkoutPage(VBox checkoutLayout) {
         // Font
         Font checkoutTitleFont = Font.font("Arial", FontWeight.BOLD, 25);
         Font checkouLabelFont = Font.font("Arial", 18);
@@ -575,7 +724,7 @@ public class HMS extends Application {
         checkoutLayout.getChildren().addAll(checkoutTitleLabel, patientIDLabel, patientIDField, checkBox, checkoutBtn);
     }
 
-    static void logout(Tab logoutTab, Stage mainPageStage) {
+    private static void logout(Tab logoutTab, Stage mainPageStage) {
         logoutTab.setOnSelectionChanged(event -> {
             if (logoutTab.isSelected()) {
                 // Close the main page stage
@@ -589,7 +738,7 @@ public class HMS extends Application {
         });
     }
 
-    static void getCurrentTime(Label timeLabel, Label dateWeek) {
+    private static void getCurrentTime(Label timeLabel, Label dateWeek) {
         Timeline timeline = new Timeline(
                 new KeyFrame(Duration.seconds(1), event -> {
                     Date currentDate = new Date();
@@ -610,5 +759,62 @@ public class HMS extends Application {
                 }));
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
+    }
+
+    private static void repopulateTable(TableView<ObservableList<String>> table, String searchCriteria) {
+        try {
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+            Statement stmt = con.createStatement();
+
+            String query = "SELECT * FROM patient";
+            if (!searchCriteria.isEmpty()) {
+                query += " WHERE lastname = '" + searchCriteria + "' OR PHealthNumber = '" + searchCriteria
+                        + "' OR patientID = '" + searchCriteria + "'";
+            }
+
+            // if (!searchCriteria.isEmpty()) {
+            // query += " WHERE lastname LIKE '%" + searchCriteria + "%' OR PHealthNumber
+            // LIKE '%" + searchCriteria
+            // + "%' OR patientID LIKE '%" + searchCriteria + "%'";
+            // }
+
+            ResultSet rs = stmt.executeQuery(query);
+
+            ResultSetMetaData metaData = (ResultSetMetaData) rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            table.getColumns().clear(); // Clear existing columns
+
+            for (int i = 1; i <= columnCount; i++) {
+                final int columnIndex = i;
+                TableColumn<ObservableList<String>, String> column = new TableColumn<>(metaData.getColumnName(i));
+                column.setCellValueFactory(
+                        cellData -> new ReadOnlyStringWrapper(cellData.getValue().get(columnIndex - 1)));
+                table.getColumns().add(column);
+            }
+
+            ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
+
+            while (rs.next()) {
+                ObservableList<String> row = FXCollections.observableArrayList();
+                for (int i = 1; i <= columnCount; i++) {
+                    row.add(rs.getString(i));
+                }
+                data.add(row);
+            }
+
+            table.setItems(data);
+
+            rs.close();
+            stmt.close();
+            con.close();
+        } catch (Exception ex) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("Error: " + ex.getMessage());
+            errorAlert.showAndWait();
+            ex.printStackTrace();
+        }
     }
 }
