@@ -124,15 +124,12 @@ public class HMS extends Application {
                 ResultSet rs = stmt.executeQuery(
                         "SELECT * FROM staff WHERE USERNAME='" + username + "' AND PASSWORD ='" + password + "'");
                 if (rs.next()) {
-                    // Show a successful login message
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Login");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Login successfully!");
-                    alert.showAndWait();
+                    // Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    // alert.setTitle("Login");
+                    // alert.setHeaderText(null);
+                    // alert.setContentText("Login successfully!");
+                    // alert.showAndWait();
                     loginPage.close();
-
-                    // Open the main page
                     mainPage(rs.getString("USERNAME"), rs.getString("EMPLOYEETYPE"));
                 } else {
                     // Show an error message for invalid credentials
@@ -202,8 +199,8 @@ public class HMS extends Application {
         registerIconView.getStyleClass().add("TabIcon");
         registerTab.setGraphic(registerIconView);
 
-        VBox registerLayout = new VBox();
-        registerLayout.setSpacing(10);
+        VBox registerLayout = new VBox(10);
+        // registerLayout.setSpacing(10);
         registerLayout.setPadding(new Insets(20));
         registerPage(registerLayout);
         registerTab.setContent(registerLayout);
@@ -220,7 +217,7 @@ public class HMS extends Application {
         consultationIconView.getStyleClass().add("TabIcon");
         consultationTab.setGraphic(consultationIconView);
 
-        VBox consultationLayout = new VBox();
+        VBox consultationLayout = new VBox(10);
         consultationLayout.setPadding(new Insets(20));
         consultationPage(consultationLayout);
         consultationTab.setContent(consultationLayout);
@@ -291,7 +288,7 @@ public class HMS extends Application {
         mainPageStage.show();
     }
 
-    static void tabPane_verify(String EmployeeType, TabPane tabPane, Tab overviewTab, Tab registerTab,
+    private static void tabPane_verify(String EmployeeType, TabPane tabPane, Tab overviewTab, Tab registerTab,
             Tab consultationTab, Tab patientTab, Tab checkoutTab,
             Tab logoutTab) {
 
@@ -596,16 +593,48 @@ public class HMS extends Application {
     private static void consultationPage(VBox consultationLayout) {
         // Font
         Font consultationTitleFont = Font.font("Arial", FontWeight.BOLD, 25);
+        Font consultationLabelFont = Font.font("Arial", 18);
 
         // Label for Consulation Page
         Label consultationTitle = new Label("Ward Assignation");
         consultationTitle.setFont(consultationTitleFont);
 
-        ComboBox<String> comboBox = new ComboBox<>();
-        comboBox.setItems(FXCollections.observableArrayList(
-                "Option 1", "Option 2", "Option 3", "Option 4"));
+        Label spacing = new Label("");
 
-        consultationLayout.getChildren().addAll(consultationTitle, comboBox);
+        // First row components
+        Label PHN = new Label("Patient Health Number");
+        PHN.setFont(consultationLabelFont);
+        PHN.setPadding(new Insets(5, 0, 0, 0));
+        TextField phnTextfield = new TextField();
+        phnTextfield.setFont(consultationLabelFont);
+        Button searchBtn = new Button("Search");
+        searchBtn.setFont(consultationLabelFont);
+
+        // Second row components
+        Label des = new Label("Desease Description");
+        des.setFont(consultationLabelFont);
+        TextArea desTextfield = new TextArea();
+        desTextfield.setPromptText("Write something...");
+        desTextfield.setPrefHeight(200);
+        desTextfield.setWrapText(true);
+        desTextfield.setFont(consultationLabelFont);
+
+        // DropDown Box
+        Label wardTypeLabel = new Label("Ward Type");
+        wardTypeLabel.setFont(consultationLabelFont);
+        ComboBox<String> wardType = new ComboBox<>();
+        wardTypeDropDown(wardType);
+
+        HBox firstRow = new HBox(10);
+        firstRow.getChildren().addAll(PHN, phnTextfield, searchBtn);
+
+        VBox secondRow = new VBox(10);
+        secondRow.getChildren().addAll(des, desTextfield);
+
+        HBox thirdRow = new HBox(10);
+        thirdRow.getChildren().addAll(wardTypeLabel, wardType);
+
+        consultationLayout.getChildren().addAll(consultationTitle, spacing, firstRow, secondRow, thirdRow);
     }
 
     private static void patientPage(VBox patientLayout) {
@@ -640,7 +669,10 @@ public class HMS extends Application {
         // Refersh Button
         Button refreshBtn = new Button("Refresh");
         refreshBtn.setFont(patientLabelFont);
-        refreshBtn.setOnAction(event -> repopulateTable(table, ""));
+        refreshBtn.setOnAction(event -> {
+            repopulateTable(table, "");
+            searchField.clear();
+        });
 
         HBox searchBox = new HBox(10);
         searchBox.setAlignment(Pos.CENTER);
@@ -768,7 +800,8 @@ public class HMS extends Application {
 
             String query = "SELECT * FROM patient";
             if (!searchCriteria.isEmpty()) {
-                query += " WHERE lastname = '" + searchCriteria + "' OR PHealthNumber = '" + searchCriteria
+                query += " WHERE lastname = '" + searchCriteria + "' OR PHealthNumber = '" +
+                        searchCriteria
                         + "' OR patientID = '" + searchCriteria + "'";
             }
 
@@ -816,5 +849,57 @@ public class HMS extends Application {
             errorAlert.showAndWait();
             ex.printStackTrace();
         }
+    }
+
+    private static void wardTypeDropDown(ComboBox<String> wardType) {
+        wardType.setItems(FXCollections.observableArrayList(
+                "Option 1", "Option 2", "Option 3", "Option 4"));
+
+        // try {
+        // // Connect to MySQL database
+        // Connection con =
+        // DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+        // Statement stmt = con.createStatement();
+        // ResultSet rs = stmt.executeQuery(
+        // "SELECT COUNT(*) AS Total_Patient FROM patient");
+        // if (rs.next()) {
+        // int total = rs.getInt("Total_Patient");
+
+        // // Create an ImageView to display the image
+        // Image img = new Image("assets/icon/patient.png");
+        // ImageView patientImgView = new ImageView(img);
+        // patientImgView.setFitWidth(50);
+        // patientImgView.setFitHeight(50);
+
+        // Label patientImg = new Label();
+        // patientImg.setGraphic(patientImgView);
+        // Label totalLabel = new Label("Total patient's");
+        // totalLabel.setFont(Font.font("Arial", 15));
+        // Label countLabel = new Label("" + total);
+        // countLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+
+        // VBox patientBox = new VBox(5);
+        // patientBox.getChildren().addAll(patientImg, totalLabel, countLabel);
+        // patientBox.setPadding(new Insets(0, 20, 0, 20));
+        // cardLayout_1.getChildren().add(patientBox);
+        // } else {
+        // Alert alert = new Alert(Alert.AlertType.ERROR);
+        // alert.setTitle("Error");
+        // alert.setHeaderText(null);
+        // alert.setContentText("Opps...Something went wrong");
+        // alert.showAndWait();
+        // }
+        // // Clean up resources
+        // rs.close();
+        // stmt.close();
+        // con.close();
+        // } catch (Exception a) {
+        // a.printStackTrace();
+        // Alert alert = new Alert(Alert.AlertType.ERROR);
+        // alert.setTitle("Error");
+        // alert.setHeaderText(null);
+        // alert.setContentText("Error: " + a.getMessage());
+        // alert.showAndWait();
+        // }
     }
 }
