@@ -11,6 +11,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,6 +30,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import com.mysql.cj.jdbc.result.ResultSetMetaData;
@@ -274,7 +276,8 @@ public class HMS extends Application {
         logout(logoutTab, mainPageStage);
 
         // Add the tabs to the tab pane
-        tabPane_verify(EmployeeType, tabPane, overviewTab, registerTab, consultationTab, patientTab, checkoutTab,
+        tabPane_employeeVerify(EmployeeType, tabPane, overviewTab, registerTab, consultationTab, patientTab,
+                checkoutTab,
                 logoutTab);
 
         VBox mainLayout = new VBox();
@@ -288,12 +291,11 @@ public class HMS extends Application {
         mainPageStage.show();
     }
 
-    private static void tabPane_verify(String EmployeeType, TabPane tabPane, Tab overviewTab, Tab registerTab,
+    private static void tabPane_employeeVerify(String EmployeeType, TabPane tabPane, Tab overviewTab, Tab registerTab,
             Tab consultationTab, Tab patientTab, Tab checkoutTab,
             Tab logoutTab) {
 
         if (EmployeeType.equals("Front-desk")) {
-            // overviewTab.setDisable(true);
             consultationTab.setDisable(true);
             patientTab.setDisable(true);
             checkoutTab.setDisable(true);
@@ -533,12 +535,12 @@ public class HMS extends Application {
                 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
                 Statement stmt = con.createStatement();
 
-                String query = "INSERT INTO patient (FIRSTNAME, LASTNAME, DATEOFBIRTH, PHONENUMBER, PHEALTHNUMBER, ADDRESS, POSTALCODE, CITY, COUNTRY, PIDENTIFICATIONNUMBER) VALUES ('"
+                String query = "INSERT INTO patient (FIRSTNAME, LASTNAME, DATEOFBIRTH, PHONENUMBER, PHEALTHNUMBER, ADDRESS, POSTALCODE, CITY, COUNTRY, PIDENTIFICATIONNUMBER, isHospitalized) VALUES ('"
                         +
                         firstName + "', '" + lastName + "', '" + dateOfBirth + "', '" + phoneNumber + "', '"
                         + personalHealthNumber + "', '"
                         + address + "', '" + postalCode + "', '" + city + "', '" + country + "', '"
-                        + patientIdentificationNumber + "')";
+                        + patientIdentificationNumber + "', 0)";
 
                 int rowsAffected = stmt.executeUpdate(query);
 
@@ -591,6 +593,9 @@ public class HMS extends Application {
     }
 
     private static void consultationPage(VBox consultationLayout) {
+
+        VBox patientDataContainer = new VBox(10);
+
         // Font
         Font consultationTitleFont = Font.font("Arial", FontWeight.BOLD, 25);
         Font consultationLabelFont = Font.font("Arial", 18);
@@ -609,9 +614,19 @@ public class HMS extends Application {
         phnTextfield.setFont(consultationLabelFont);
         Button searchBtn = new Button("Search");
         searchBtn.setFont(consultationLabelFont);
+        searchBtn
+                .setOnAction(event -> getPatientData(phnTextfield.getText(), consultationLayout, patientDataContainer));
+        Button resetBtn = new Button("Reset");
+        resetBtn.setFont(consultationLabelFont);
+        resetBtn.setOnAction(event -> {
+            phnTextfield.clear();
+            patientDataContainer.getChildren().clear();
+            consultationLayout.getChildren().clear();
+            consultationPage(consultationLayout);
+        });
 
         // Second row components
-        Label des = new Label("Desease Description");
+        Label des = new Label("Description");
         des.setFont(consultationLabelFont);
         TextArea desTextfield = new TextArea();
         desTextfield.setPromptText("Write something...");
@@ -626,15 +641,17 @@ public class HMS extends Application {
         wardTypeDropDown(wardType);
 
         HBox firstRow = new HBox(10);
-        firstRow.getChildren().addAll(PHN, phnTextfield, searchBtn);
+        firstRow.getChildren().addAll(PHN, phnTextfield, searchBtn, resetBtn);
 
         VBox secondRow = new VBox(10);
         secondRow.getChildren().addAll(des, desTextfield);
 
         HBox thirdRow = new HBox(10);
+        thirdRow.setPadding(new Insets(20, 0, 0, 0));
         thirdRow.getChildren().addAll(wardTypeLabel, wardType);
 
-        consultationLayout.getChildren().addAll(consultationTitle, spacing, firstRow, secondRow, thirdRow);
+        consultationLayout.getChildren().addAll(consultationTitle, spacing, firstRow, patientDataContainer, secondRow,
+                thirdRow);
     }
 
     private static void patientPage(VBox patientLayout) {
@@ -646,8 +663,8 @@ public class HMS extends Application {
         Label patientTitle = new Label("Patient List");
         patientTitle.setFont(patientTitleFont);
         Label spacing_1 = new Label();
-        Label spacing_2 = new Label();
 
+        // Table
         TableView<ObservableList<String>> table = new TableView<>();
         repopulateTable(table, "");
 
@@ -677,12 +694,7 @@ public class HMS extends Application {
         HBox searchBox = new HBox(10);
         searchBox.setAlignment(Pos.CENTER);
         searchBox.getChildren().addAll(searchField, searchBtn, refreshBtn);
-        patientLayout.getChildren().addAll(patientTitle, spacing_1, searchBox, spacing_2, patientListBox);
-
-        // Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(10), event ->
-        // repopulateTable(table, "")));
-        // timeline.setCycleCount(Timeline.INDEFINITE);
-        // timeline.play();
+        patientLayout.getChildren().addAll(patientTitle, spacing_1, searchBox, patientListBox);
     }
 
     private static void checkoutPage(VBox checkoutLayout) {
@@ -793,36 +805,42 @@ public class HMS extends Application {
         timeline.play();
     }
 
-    private static void repopulateTable(TableView<ObservableList<String>> table, String searchCriteria) {
+    private static void repopulateTable(TableView<ObservableList<String>> table, String searchInfo) {
         try {
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
             Statement stmt = con.createStatement();
 
             String query = "SELECT * FROM patient";
-            if (!searchCriteria.isEmpty()) {
-                query += " WHERE lastname = '" + searchCriteria + "' OR PHealthNumber = '" +
-                        searchCriteria
-                        + "' OR patientID = '" + searchCriteria + "'";
+            if (!searchInfo.isEmpty()) {
+                query += " WHERE lastname = '" + searchInfo + "' OR PHealthNumber = '" +
+                        searchInfo + "' OR patientID = '" + searchInfo + "'";
             }
-
-            // if (!searchCriteria.isEmpty()) {
-            // query += " WHERE lastname LIKE '%" + searchCriteria + "%' OR PHealthNumber
-            // LIKE '%" + searchCriteria
-            // + "%' OR patientID LIKE '%" + searchCriteria + "%'";
-            // }
 
             ResultSet rs = stmt.executeQuery(query);
 
             ResultSetMetaData metaData = (ResultSetMetaData) rs.getMetaData();
             int columnCount = metaData.getColumnCount();
 
-            table.getColumns().clear(); // Clear existing columns
-
+            table.getColumns().clear();
             for (int i = 1; i <= columnCount; i++) {
                 final int columnIndex = i;
                 TableColumn<ObservableList<String>, String> column = new TableColumn<>(metaData.getColumnName(i));
                 column.setCellValueFactory(
                         cellData -> new ReadOnlyStringWrapper(cellData.getValue().get(columnIndex - 1)));
+
+                // Center-align the cell content
+                column.setCellFactory(tc -> {
+                    TableCell<ObservableList<String>, String> cell = new TableCell<ObservableList<String>, String>() {
+                        @Override
+                        protected void updateItem(String item, boolean empty) {
+                            super.updateItem(item, empty);
+                            setText(empty ? null : item);
+                            setAlignment(Pos.CENTER);
+                        }
+                    };
+                    return cell;
+                });
+
                 table.getColumns().add(column);
             }
 
@@ -837,6 +855,9 @@ public class HMS extends Application {
             }
 
             table.setItems(data);
+            table.setFixedCellSize(40);
+            table.prefHeightProperty()
+                    .bind(table.fixedCellSizeProperty().multiply(Bindings.size(table.getItems()).add(1.0)));
 
             rs.close();
             stmt.close();
@@ -849,57 +870,97 @@ public class HMS extends Application {
             errorAlert.showAndWait();
             ex.printStackTrace();
         }
+
     }
 
     private static void wardTypeDropDown(ComboBox<String> wardType) {
-        wardType.setItems(FXCollections.observableArrayList(
-                "Option 1", "Option 2", "Option 3", "Option 4"));
+        try {
+            // Connect to MySQL database
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT WARDNAME FROM ward");
 
-        // try {
-        // // Connect to MySQL database
-        // Connection con =
-        // DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
-        // Statement stmt = con.createStatement();
-        // ResultSet rs = stmt.executeQuery(
-        // "SELECT COUNT(*) AS Total_Patient FROM patient");
-        // if (rs.next()) {
-        // int total = rs.getInt("Total_Patient");
+            ArrayList<String> wardTypeList = new ArrayList<>();
+            while (rs.next()) {
+                String wardName = rs.getString("WARDNAME");
+                wardTypeList.add(wardName);
+            }
 
-        // // Create an ImageView to display the image
-        // Image img = new Image("assets/icon/patient.png");
-        // ImageView patientImgView = new ImageView(img);
-        // patientImgView.setFitWidth(50);
-        // patientImgView.setFitHeight(50);
+            wardType.setItems(FXCollections.observableArrayList(wardTypeList));
 
-        // Label patientImg = new Label();
-        // patientImg.setGraphic(patientImgView);
-        // Label totalLabel = new Label("Total patient's");
-        // totalLabel.setFont(Font.font("Arial", 15));
-        // Label countLabel = new Label("" + total);
-        // countLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+            if (!wardTypeList.isEmpty()) {
+                wardType.setValue(wardTypeList.get(0));
+            }
+            rs.close();
+            stmt.close();
+            con.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Error: " + ex.getMessage());
+            alert.showAndWait();
+        }
+    }
 
-        // VBox patientBox = new VBox(5);
-        // patientBox.getChildren().addAll(patientImg, totalLabel, countLabel);
-        // patientBox.setPadding(new Insets(0, 20, 0, 20));
-        // cardLayout_1.getChildren().add(patientBox);
-        // } else {
-        // Alert alert = new Alert(Alert.AlertType.ERROR);
-        // alert.setTitle("Error");
-        // alert.setHeaderText(null);
-        // alert.setContentText("Opps...Something went wrong");
-        // alert.showAndWait();
-        // }
-        // // Clean up resources
-        // rs.close();
-        // stmt.close();
-        // con.close();
-        // } catch (Exception a) {
-        // a.printStackTrace();
-        // Alert alert = new Alert(Alert.AlertType.ERROR);
-        // alert.setTitle("Error");
-        // alert.setHeaderText(null);
-        // alert.setContentText("Error: " + a.getMessage());
-        // alert.showAndWait();
-        // }
+    private static void getPatientData(String phn, VBox consultationLayout, VBox patientDataContainer) {
+        // Font
+        Font consultationLabelFont = Font.font("Arial", 20);
+
+        patientDataContainer.getChildren().clear();
+
+        try {
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+            Statement stmt = con.createStatement();
+            String query = "SELECT FIRSTNAME, LASTNAME, DATEOFBIRTH, PIDENTIFICATIONNUMBER FROM patient";
+
+            if (!phn.isEmpty()) {
+                query += " WHERE PHEALTHNUMBER = " + phn;
+            }
+
+            ResultSet rs = stmt.executeQuery(query);
+
+            if (rs.next()) {
+                if (!phn.isEmpty()) {
+                    HBox row_1 = new HBox(20);
+                    Label firstNameLabel = new Label("First Name: " + rs.getString("FIRSTNAME"));
+                    firstNameLabel.setFont(consultationLabelFont);
+                    Label lastNameLabel = new Label("Last Name: " + rs.getString("LASTNAME"));
+                    lastNameLabel.setFont(consultationLabelFont);
+                    Label dateOfBirthLabel = new Label("Date of Birth: " + rs.getString("DATEOFBIRTH"));
+                    dateOfBirthLabel.setFont(consultationLabelFont);
+                    Label PIdentificationNumLabel = new Label(
+                            "Patient Identification Number: " + rs.getString("PIDENTIFICATIONNUMBER"));
+                    PIdentificationNumLabel.setFont(consultationLabelFont);
+
+                    VBox column_1 = new VBox(20);
+                    VBox column_2 = new VBox(20);
+                    column_1.getChildren().addAll(firstNameLabel, dateOfBirthLabel);
+                    column_2.getChildren().addAll(lastNameLabel, PIdentificationNumLabel);
+                    row_1.getChildren().addAll(column_1, column_2);
+
+                    patientDataContainer.setPadding(new Insets(20, 0, 20, 0));
+                    patientDataContainer.getChildren().add(row_1);
+                }
+            } else {
+                HBox row_1 = new HBox(20);
+                Label contentLabel = new Label("The PHN is not found.");
+                contentLabel.setFont(consultationLabelFont);
+                row_1.getChildren().add(contentLabel);
+                patientDataContainer.getChildren().add(contentLabel);
+            }
+
+            rs.close();
+            stmt.close();
+            con.close();
+        } catch (Exception ex) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("Error: " + ex.getMessage());
+            errorAlert.showAndWait();
+            ex.printStackTrace();
+        }
     }
 }
