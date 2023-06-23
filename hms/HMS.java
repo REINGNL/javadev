@@ -202,7 +202,6 @@ public class HMS extends Application {
         registerTab.setGraphic(registerIconView);
 
         VBox registerLayout = new VBox(10);
-        // registerLayout.setSpacing(10);
         registerLayout.setPadding(new Insets(20));
         registerPage(registerLayout);
         registerTab.setContent(registerLayout);
@@ -291,6 +290,7 @@ public class HMS extends Application {
         mainPageStage.show();
     }
 
+    // Ultilities
     private static void tabPane_employeeVerify(String EmployeeType, TabPane tabPane, Tab overviewTab, Tab registerTab,
             Tab consultationTab, Tab patientTab, Tab checkoutTab,
             Tab logoutTab) {
@@ -492,9 +492,10 @@ public class HMS extends Application {
         lastNameField.setFont(registerLabelFont);
         TextField dateOfBirthField = new TextField();
         dateOfBirthField.setFont(registerLabelFont);
-        dateOfBirthField.setPromptText("yyyy-mm-dd");
+        dateOfBirthField.setPromptText("eg. yyyy-mm-dd");
         TextField phoneNumberField = new TextField();
         phoneNumberField.setFont(registerLabelFont);
+        phoneNumberField.setPromptText("eg. 0123456789");
         TextField personalHealthNumberField = new TextField();
         personalHealthNumberField.setFont(registerLabelFont);
         TextField addressField = new TextField();
@@ -507,6 +508,7 @@ public class HMS extends Application {
         countryField.setFont(registerLabelFont);
         TextField patientIdenficationNumberField = new TextField();
         patientIdenficationNumberField.setFont(registerLabelFont);
+        patientIdenficationNumberField.setPromptText("eg. 023456789900");
 
         // Button for Registration Page
         Button registerBtn = new Button("Register");
@@ -616,14 +618,6 @@ public class HMS extends Application {
         searchBtn.setFont(consultationLabelFont);
         searchBtn
                 .setOnAction(event -> getPatientData(phnTextfield.getText(), consultationLayout, patientDataContainer));
-        Button resetBtn = new Button("Reset");
-        resetBtn.setFont(consultationLabelFont);
-        resetBtn.setOnAction(event -> {
-            phnTextfield.clear();
-            patientDataContainer.getChildren().clear();
-            consultationLayout.getChildren().clear();
-            consultationPage(consultationLayout);
-        });
 
         // Second row components
         Label des = new Label("Description");
@@ -634,24 +628,54 @@ public class HMS extends Application {
         desTextfield.setWrapText(true);
         desTextfield.setFont(consultationLabelFont);
 
+        // Third row components
         // DropDown Box
-        Label wardTypeLabel = new Label("Ward Type");
+        Label wardTypeLabel = new Label("Ward Type: ");
         wardTypeLabel.setFont(consultationLabelFont);
         ComboBox<String> wardType = new ComboBox<>();
         wardTypeDropDown(wardType);
 
+        // Display Available BedID
+        Label bedIDLabel = new Label("BedID Assinged: ");
+        bedIDLabel.setFont(consultationLabelFont);
+        TextField bedIDTextField = new TextField();
+        bedIDTextField.setPromptText("Please select ward type");
+        bedIDTextField.setEditable(false);
+        bedIDTextField.setMouseTransparent(true);
+        bedIDTextField.setFocusTraversable(false);
+
+        wardType.setOnAction(event -> availableBed(wardType.getValue(), bedIDTextField));
+
+        // Fourth row
+        Button resetBtn = new Button("Reset");
+        resetBtn.setFont(consultationLabelFont);
+        resetBtn.setOnAction(event -> {
+            phnTextfield.clear();
+            patientDataContainer.getChildren().clear();
+            consultationLayout.getChildren().clear();
+            consultationPage(consultationLayout);
+        });
+
+        Button assignBtn = new Button("Assign");
+        assignBtn.setFont(consultationLabelFont);
+        assignBtn.setOnAction(event -> assignBed(consultationLayout, phnTextfield, desTextfield, wardType.getValue(),
+                bedIDTextField));
+
         HBox firstRow = new HBox(10);
-        firstRow.getChildren().addAll(PHN, phnTextfield, searchBtn, resetBtn);
+        firstRow.getChildren().addAll(PHN, phnTextfield, searchBtn);
 
         VBox secondRow = new VBox(10);
         secondRow.getChildren().addAll(des, desTextfield);
 
         HBox thirdRow = new HBox(10);
         thirdRow.setPadding(new Insets(20, 0, 0, 0));
-        thirdRow.getChildren().addAll(wardTypeLabel, wardType);
+        thirdRow.getChildren().addAll(wardTypeLabel, wardType, bedIDLabel, bedIDTextField);
+
+        HBox fourthRow = new HBox(10);
+        fourthRow.getChildren().addAll(resetBtn, assignBtn);
 
         consultationLayout.getChildren().addAll(consultationTitle, spacing, firstRow, patientDataContainer, secondRow,
-                thirdRow);
+                thirdRow, fourthRow);
     }
 
     private static void patientPage(VBox patientLayout) {
@@ -666,6 +690,7 @@ public class HMS extends Application {
 
         // Table
         TableView<ObservableList<String>> table = new TableView<>();
+        table.setFixedCellSize(40);
         repopulateTable(table, "");
 
         VBox patientListBox = new VBox(10);
@@ -705,10 +730,10 @@ public class HMS extends Application {
         // Label and TextField of Checkout Page
         Label checkoutTitleLabel = new Label("Check Out Patient");
         checkoutTitleLabel.setFont(checkoutTitleFont);
-        Label patientIDLabel = new Label("Patient ID");
-        patientIDLabel.setFont(checkouLabelFont);
-        TextField patientIDField = new TextField();
-        patientIDField.setFont(checkoutTitleFont);
+        Label phnLabel = new Label("Patient Health Number");
+        phnLabel.setFont(checkouLabelFont);
+        TextField phnField = new TextField();
+        phnField.setFont(checkoutTitleFont);
         CheckBox checkBox = new CheckBox("I had admitted the patient above is ready to check out");
         checkBox.setFont(checkouLabelFont);
 
@@ -724,32 +749,36 @@ public class HMS extends Application {
                 return;
             }
 
-            String PatientID = patientIDField.getText();
+            String phn = phnField.getText();
 
-            // Insert the data into the database
             try {
                 // Please check your port before run it!!!
                 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
                 Statement stmt = con.createStatement();
 
-                String query = "DELETE FROM patient WHERE PATIENTID = '" + PatientID + "'";
+                String deletePatientQuery = "DELETE FROM patient WHERE PHEALTHNUMBER = '" + phn + "'";
+                String deleteBedQuery = "UPDATE bed AS b " +
+                        "INNER JOIN ward AS w " +
+                        "SET b.PHEALTHNUMBER = NULL, b.Description = NULL, w.occupied_bed = w.occupied_bed - 1 " +
+                        "WHERE b.PHEALTHNUMBER = '" + phn + "' AND w.WARDNAME = b.WardType";
 
-                int rowsAffected = stmt.executeUpdate(query);
+                int rowsAffectedPatient = stmt.executeUpdate(deletePatientQuery);
+                int rowsAffectedBed = stmt.executeUpdate(deleteBedQuery);
 
-                if (rowsAffected > 0) {
+                if (rowsAffectedPatient > 0 && rowsAffectedBed > 0) {
                     Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                     successAlert.setTitle("Check out");
                     successAlert.setHeaderText(null);
                     successAlert.setContentText("Checkout successfully!");
                     successAlert.showAndWait();
                     // Clear the text fields
-                    patientIDField.setText("");
+                    phnField.setText("");
                     checkBox.setSelected(false);
                 } else {
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
                     errorAlert.setTitle("Information");
                     errorAlert.setHeaderText(null);
-                    errorAlert.setContentText("Checkout failed! Please confirm the patient ID is existing.");
+                    errorAlert.setContentText("Checkout failed! Please confirm the Patient Health Number is existing.");
                     errorAlert.showAndWait();
                 }
 
@@ -765,7 +794,7 @@ public class HMS extends Application {
             }
         });
 
-        checkoutLayout.getChildren().addAll(checkoutTitleLabel, patientIDLabel, patientIDField, checkBox, checkoutBtn);
+        checkoutLayout.getChildren().addAll(checkoutTitleLabel, phnLabel, phnField, checkBox, checkoutBtn);
     }
 
     private static void logout(Tab logoutTab, Stage mainPageStage) {
@@ -855,7 +884,6 @@ public class HMS extends Application {
             }
 
             table.setItems(data);
-            table.setFixedCellSize(40);
             table.prefHeightProperty()
                     .bind(table.fixedCellSizeProperty().multiply(Bindings.size(table.getItems()).add(1.0)));
 
@@ -869,38 +897,6 @@ public class HMS extends Application {
             errorAlert.setContentText("Error: " + ex.getMessage());
             errorAlert.showAndWait();
             ex.printStackTrace();
-        }
-
-    }
-
-    private static void wardTypeDropDown(ComboBox<String> wardType) {
-        try {
-            // Connect to MySQL database
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT WARDNAME FROM ward");
-
-            ArrayList<String> wardTypeList = new ArrayList<>();
-            while (rs.next()) {
-                String wardName = rs.getString("WARDNAME");
-                wardTypeList.add(wardName);
-            }
-
-            wardType.setItems(FXCollections.observableArrayList(wardTypeList));
-
-            if (!wardTypeList.isEmpty()) {
-                wardType.setValue(wardTypeList.get(0));
-            }
-            rs.close();
-            stmt.close();
-            con.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText("Error: " + ex.getMessage());
-            alert.showAndWait();
         }
     }
 
@@ -916,7 +912,7 @@ public class HMS extends Application {
             String query = "SELECT FIRSTNAME, LASTNAME, DATEOFBIRTH, PIDENTIFICATIONNUMBER FROM patient";
 
             if (!phn.isEmpty()) {
-                query += " WHERE PHEALTHNUMBER = " + phn;
+                query += " WHERE PHEALTHNUMBER = '" + phn + "'";
             }
 
             ResultSet rs = stmt.executeQuery(query);
@@ -963,4 +959,115 @@ public class HMS extends Application {
             ex.printStackTrace();
         }
     }
+
+    private static void wardTypeDropDown(ComboBox<String> wardType) {
+        try {
+            // Connect to MySQL database
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT WARDNAME FROM ward");
+
+            ArrayList<String> wardTypeList = new ArrayList<>();
+            while (rs.next()) {
+                String wardName = rs.getString("WARDNAME");
+                wardTypeList.add(wardName);
+            }
+
+            wardType.setItems(FXCollections.observableArrayList(wardTypeList));
+
+            // if (!wardTypeList.isEmpty()) {
+            // wardType.setValue(wardTypeList.get(0));
+            // }
+            rs.close();
+            stmt.close();
+            con.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Error: " + ex.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    private static void availableBed(String wardType, TextField bedIDTextField) {
+        try {
+            // Please check your port before run it!!!
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+            Statement stmt = con.createStatement();
+            String query = "SELECT BEDID FROM bed";
+            if (wardType != null) {
+                query += " WHERE WardType = '" + wardType + "' AND PHealthNumber IS NULL LIMIT 1";
+            }
+
+            ResultSet rs = stmt.executeQuery(query);
+
+            if (rs.next()) {
+                String bedID = rs.getString("BEDID");
+                bedIDTextField.setText(bedID);
+            }
+            rs.close();
+            stmt.close();
+            con.close();
+        } catch (Exception ex) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("Error: " + ex.getMessage());
+            errorAlert.showAndWait();
+            ex.printStackTrace();
+        }
+    }
+
+    private static void assignBed(VBox consultationLayout, TextField phn, TextArea desc, String wardType,
+            TextField bedIDTextField) {
+
+        String patientHealthNumber = phn.getText();
+        String description = desc.getText();
+        String bedID = bedIDTextField.getText();
+
+        if (!patientHealthNumber.isEmpty() || !description.isEmpty()) {
+            try {
+                // Please check your port before running it!!!
+                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+                Statement stmt = con.createStatement();
+
+                String query = "UPDATE bed AS b " +
+                        "INNER JOIN patient AS p INNER JOIN ward AS w " +
+                        "SET b.PHEALTHNUMBER = '" + patientHealthNumber + "', " +
+                        "    b.Description = '" + description + "', " +
+                        "    p.isHospitalized = true, " +
+                        "    w.occupied_bed = w.occupied_bed + 1 " +
+                        "WHERE b.WardType = '" + wardType + "' " +
+                        "  AND b.BEDID = '" + bedID + "' " +
+                        "  AND p.PHEALTHNUMBER = '" + patientHealthNumber + "' " +
+                        "  AND w.WARDNAME = '" + wardType + "'";
+
+                int rowsAffected = stmt.executeUpdate(query);
+
+                if (rowsAffected > 0) {
+                    Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                    successAlert.setTitle("Bed Assignment");
+                    successAlert.setHeaderText(null);
+                    successAlert.setContentText("Bed assigned successfully.");
+                    successAlert.showAndWait();
+
+                    consultationLayout.getChildren().clear();
+                    consultationPage(consultationLayout);
+                }
+
+                stmt.close();
+                con.close();
+            } catch (Exception ex) {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Error");
+                errorAlert.setHeaderText(null);
+                errorAlert.setContentText("Error: " + ex.getMessage());
+                errorAlert.showAndWait();
+                ex.printStackTrace();
+            }
+        }
+    }
+
 }
