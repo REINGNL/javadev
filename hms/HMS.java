@@ -867,7 +867,24 @@ public class HMS extends Application {
         bedIDTextField.setMouseTransparent(true);
         bedIDTextField.setFocusTraversable(false);
 
-        wardType.setOnAction(event -> availableBed(wardType.getValue(), bedIDTextField));
+        Label assignedDoctorLabel = new Label("Doctor Assigned");
+        assignedDoctorLabel.setFont(consultationLabelFont);
+        TextField assignedDoctorTextField = new TextField();
+        assignedDoctorTextField.setPromptText("Please select ward type");
+        assignedDoctorTextField.setEditable(false);
+        assignedDoctorTextField.setMouseTransparent(true);
+        assignedDoctorTextField.setFocusTraversable(false);
+
+        Label assignedNurseLabel = new Label("Nurse Assigned");
+        assignedNurseLabel.setFont(consultationLabelFont);
+        TextField assignedNurseTextField = new TextField();
+        assignedNurseTextField.setPromptText("Please select ward type");
+        assignedNurseTextField.setEditable(false);
+        assignedNurseTextField.setMouseTransparent(true);
+        assignedNurseTextField.setFocusTraversable(false);
+
+        wardType.setOnAction(event -> availableBed(wardType.getValue(), bedIDTextField, assignedDoctorTextField,
+                assignedNurseTextField));
 
         // Fourth row
         Button resetBtn = new Button("Reset");
@@ -882,7 +899,7 @@ public class HMS extends Application {
         Button assignBtn = new Button("Assign");
         assignBtn.setFont(consultationLabelFont);
         assignBtn.setOnAction(event -> assignBed(consultationLayout, phnTextfield, desTextfield, wardType.getValue(),
-                bedIDTextField));
+                bedIDTextField, assignedDoctorTextField, assignedNurseTextField));
 
         HBox firstRow = new HBox(10);
         firstRow.getChildren().addAll(PHN, phnTextfield, searchBtn);
@@ -892,7 +909,8 @@ public class HMS extends Application {
 
         HBox thirdRow = new HBox(10);
         thirdRow.setPadding(new Insets(20, 0, 0, 0));
-        thirdRow.getChildren().addAll(wardTypeLabel, wardType, bedIDLabel, bedIDTextField);
+        thirdRow.getChildren().addAll(wardTypeLabel, wardType, bedIDLabel, bedIDTextField, assignedDoctorLabel,
+                assignedDoctorTextField, assignedNurseLabel, assignedNurseTextField);
 
         HBox fourthRow = new HBox(10);
         fourthRow.getChildren().addAll(resetBtn, assignBtn);
@@ -1082,7 +1100,7 @@ public class HMS extends Application {
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
             Statement stmt = con.createStatement();
 
-            String query = "SELECT PATIENTID, FIRSTNAME, LASTNAME, DATEOFBIRTH, PHONENUMBER, PIDENTIFICATIONNUMBER, PHEALTHNUMBER, ADDRESS, POSTALCODE, CITY, COUNTRY, isHospitalized, WARDTYPE FROM patient";
+            String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, p.WARDTYPE, b.assigned_Doctor, b.assigned_Nurse FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER;";
             if (!searchInfo.isEmpty()) {
                 query += " WHERE lastname = '" + searchInfo + "' OR PHealthNumber = '" +
                         searchInfo + "' OR patientID = '" + searchInfo + "'";
@@ -1096,7 +1114,8 @@ public class HMS extends Application {
             table.getColumns().clear();
             for (int i = 1; i <= columnCount; i++) {
                 final int columnIndex = i;
-                TableColumn<ObservableList<String>, String> column = new TableColumn<>(metaData.getColumnName(i));
+                String columnName = getColumnName(metaData.getColumnName(i));
+                TableColumn<ObservableList<String>, String> column = new TableColumn<>(columnName);
                 column.setCellValueFactory(
                         cellData -> new ReadOnlyStringWrapper(cellData.getValue().get(columnIndex - 1)));
 
@@ -1112,7 +1131,7 @@ public class HMS extends Application {
                     };
                     return cell;
                 });
-
+                column.setSortable(false);
                 table.getColumns().add(column);
             }
 
@@ -1140,6 +1159,43 @@ public class HMS extends Application {
             errorAlert.setContentText("Error: " + ex.getMessage());
             errorAlert.showAndWait();
             ex.printStackTrace();
+        }
+    }
+
+    private static String getColumnName(String columnName) {
+        switch (columnName) {
+            case "PATIENTID":
+                return "Patient ID";
+            case "FIRSTNAME":
+                return "First Name";
+            case "LASTNAME":
+                return "Last Name";
+            case "DATEOFBIRTH":
+                return "Date of Birth";
+            case "PHONENUMBER":
+                return "Phone Number";
+            case "PIDENTIFICATIONNUMBER":
+                return "P.IC";
+            case "PHEALTHNUMBER":
+                return "P.HN";
+            case "ADDRESS":
+                return "Address";
+            case "POSTALCODE":
+                return "Postal Code";
+            case "CITY":
+                return "City";
+            case "COUNTRY":
+                return "Country";
+            case "isHospitalized":
+                return "Is Hospitalized";
+            case "WARDTYPE":
+                return "Ward Type";
+            case "assigned_Doctor":
+                return "Doctor In Charge";
+            case "assigned_Nurse":
+                return "Nurse In Charge";
+            default:
+                return columnName;
         }
     }
 
@@ -1218,9 +1274,6 @@ public class HMS extends Application {
 
             wardType.setItems(FXCollections.observableArrayList(wardTypeList));
 
-            // if (!wardTypeList.isEmpty()) {
-            // wardType.setValue(wardTypeList.get(0));
-            // }
             rs.close();
             stmt.close();
             con.close();
@@ -1234,24 +1287,59 @@ public class HMS extends Application {
         }
     }
 
-    private static void availableBed(String wardType, TextField bedIDTextField) {
+    private static void availableBed(String wardType, TextField bedIDTextField, TextField assignedDoctorTextField,
+            TextField assignedNurseTextField) {
         try {
             // Please check your port before run it!!!
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
             Statement stmt = con.createStatement();
+            Statement stmt1 = con.createStatement();
+            Statement stmt2 = con.createStatement();
             String query = "SELECT BEDID FROM bed";
+            String query1 = "SELECT FIRSTNAME, LASTNAME FROM staff";
+            String query2 = "SELECT FIRSTNAME, LASTNAME FROM staff";
+
             if (wardType != null) {
                 query += " WHERE WardType = '" + wardType + "' AND PHealthNumber IS NULL LIMIT 1";
+                query1 += " WHERE EMPLOYEETYPE = 'Doctor' AND ward_InCharge = '" + wardType + "'";
+                query2 += " WHERE EMPLOYEETYPE = 'Nurse' AND ward_InCharge = '" + wardType + "'";
             }
 
             ResultSet rs = stmt.executeQuery(query);
+            ResultSet rs1 = stmt1.executeQuery(query1);
+            ResultSet rs2 = stmt2.executeQuery(query2);
 
             if (rs.next()) {
                 String bedID = rs.getString("BEDID");
                 bedIDTextField.setText(bedID);
+            } else {
+                Alert confirmationAlert = new Alert(Alert.AlertType.INFORMATION);
+                confirmationAlert.setTitle("Bed Full");
+                confirmationAlert.setHeaderText(null);
+                confirmationAlert.setContentText("The bed of the ward is full!");
+                confirmationAlert.showAndWait();
+                return;
+            }
+            if (rs1.next()) {
+                String DocInCharge = rs1.getString("LASTNAME");
+                String DocInCharge1 = rs1.getString("FIRSTNAME");
+                assignedDoctorTextField.setText(DocInCharge + " " + DocInCharge1);
+            } else {
+                assignedDoctorTextField.setText("");
+            }
+            if (rs2.next()) {
+                String NurInCharge = rs2.getString("LASTNAME");
+                String NurInCharge1 = rs2.getString("FIRSTNAME");
+                assignedNurseTextField.setText(NurInCharge + " " + NurInCharge1);
+            } else {
+                assignedNurseTextField.setText("");
             }
             rs.close();
+            rs1.close();
+            rs2.close();
             stmt.close();
+            stmt1.close();
+            stmt2.close();
             con.close();
         } catch (Exception ex) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
@@ -1264,11 +1352,13 @@ public class HMS extends Application {
     }
 
     private static void assignBed(VBox consultationLayout, TextField phn, TextArea desc, String wardType,
-            TextField bedIDTextField) {
+            TextField bedIDTextField, TextField assignedDoctorTextField, TextField assignedNurseTextField) {
 
         String patientHealthNumber = phn.getText();
         String description = desc.getText();
         String bedID = bedIDTextField.getText();
+        String assignedDoctor = assignedDoctorTextField.getText();
+        String assignedNurse = assignedNurseTextField.getText();
 
         if (!patientHealthNumber.isEmpty() || !description.isEmpty()) {
             try {
@@ -1280,6 +1370,10 @@ public class HMS extends Application {
                         "INNER JOIN patient AS p INNER JOIN ward AS w " +
                         "SET b.PHEALTHNUMBER = '" + patientHealthNumber + "', " +
                         "    b.Description = '" + description + "', " +
+                        "    b.assigned_Doctor = '" + assignedDoctor + "', " +
+                        "    b.assigned_Nurse = '" + assignedNurse + "', " +
+                        "    p.Doctor_InCharge = '" + assignedDoctor + "', " +
+                        "    p.Nurse_InCharge = '" + assignedNurse + "', " +
                         "    p.isHospitalized = true, " +
                         "    p.WARDTYPE = '" + wardType + "', " +
                         "    w.occupied_bed = w.occupied_bed + 1 " +
@@ -1313,5 +1407,4 @@ public class HMS extends Application {
             }
         }
     }
-
 }
