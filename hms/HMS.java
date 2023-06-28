@@ -1100,10 +1100,10 @@ public class HMS extends Application {
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
             Statement stmt = con.createStatement();
 
-            String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, p.WARDTYPE, b.assigned_Doctor, b.assigned_Nurse FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER;";
+            String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, p.WARDTYPE, b.assigned_Doctor, b.assigned_Nurse FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER";
             if (!searchInfo.isEmpty()) {
-                query += " WHERE lastname = '" + searchInfo + "' OR PHealthNumber = '" +
-                        searchInfo + "' OR patientID = '" + searchInfo + "'";
+                query += " WHERE p.LASTNAME = '" + searchInfo + "' OR p.PHEALTHNUMBER = '" +
+                        searchInfo + "' OR p.PATIENTID = '" + searchInfo + "'";
             }
 
             ResultSet rs = stmt.executeQuery(query);
