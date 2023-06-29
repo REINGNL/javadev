@@ -296,6 +296,7 @@ public class HMS extends Application {
         mainScene.getStylesheets().add(getClass().getResource("style").toExternalForm());
         mainPageStage.setScene(mainScene);
         mainPageStage.setMaximized(true);
+        // mainPageStage.setResizable(false);
         mainPageStage.show();
     }
 
@@ -1018,7 +1019,8 @@ public class HMS extends Application {
                 String deletePatientQuery = "DELETE FROM patient WHERE PHEALTHNUMBER = '" + phn + "'";
                 String deleteBedQuery = "UPDATE bed AS b " +
                         "INNER JOIN ward AS w " +
-                        "SET b.PHEALTHNUMBER = NULL, b.Description = NULL, w.occupied_bed = w.occupied_bed - 1 " +
+                        "SET b.PHEALTHNUMBER = NULL, b.Description = NULL, b.assigned_Doctor = NULL, b.assigned_Nurse = NULL, w.occupied_bed = w.occupied_bed - 1 "
+                        +
                         "WHERE b.PHEALTHNUMBER = '" + phn + "' AND w.WARDNAME = b.WardType";
 
                 int rowsAffectedPatient = stmt.executeUpdate(deletePatientQuery);
@@ -1100,7 +1102,7 @@ public class HMS extends Application {
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
             Statement stmt = con.createStatement();
 
-            String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, p.WARDTYPE, b.assigned_Doctor, b.assigned_Nurse FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER";
+            String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, b.WardType, b.BEDID, b.assigned_Doctor, b.assigned_Nurse FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER";
 
             if (!searchInfo.isEmpty()) {
                 query += " WHERE p.LASTNAME = '" + searchInfo + "' OR p.PHEALTHNUMBER = '" + searchInfo
@@ -1190,9 +1192,11 @@ public class HMS extends Application {
             case "COUNTRY":
                 return "Country";
             case "isHospitalized":
-                return "Is Hospitalized";
-            case "WARDTYPE":
+                return "Hospitalized";
+            case "WardType":
                 return "Ward Type";
+            case "BEDID":
+                return "Bed ID";
             case "assigned_Doctor":
                 return "Doctor In Charge";
             case "assigned_Nurse":
@@ -1375,8 +1379,6 @@ public class HMS extends Application {
                         "    b.Description = '" + description + "', " +
                         "    b.assigned_Doctor = '" + assignedDoctor + "', " +
                         "    b.assigned_Nurse = '" + assignedNurse + "', " +
-                        "    p.Doctor_InCharge = '" + assignedDoctor + "', " +
-                        "    p.Nurse_InCharge = '" + assignedNurse + "', " +
                         "    p.isHospitalized = true, " +
                         "    p.WARDTYPE = '" + wardType + "', " +
                         "    w.occupied_bed = w.occupied_bed + 1 " +
