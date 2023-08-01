@@ -190,6 +190,9 @@ public class HMS extends Application {
         VBox registerLayout = new VBox(10);
         registerLayout.setPadding(new Insets(20));
         utilities.registerPage(registerLayout);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(registerLayout);
+        registerTab.setContent(scrollPane);
         registerTab.setContent(registerLayout);
         registerTab.setClosable(false);
 
