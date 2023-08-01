@@ -760,7 +760,7 @@ public class utilities {
         // Search Button
         Button searchBtn = new Button("Search");
         searchBtn.setFont(staffLabelFont);
-        searchBtn.setOnAction(event -> repopulateTable(table, searchField.getText(), employeeType));
+        searchBtn.setOnAction(event -> repopulateStaffTable(table, searchField.getText(), employeeType));
 
         // Refersh Button
         Button refreshBtn = new Button("Refresh");
