@@ -7,6 +7,13 @@ Title: Hospital Management System
 
 package hms;
 
+import hms.controller.consultationController;
+import hms.controller.loginController;
+import hms.controller.logoutController;
+import hms.controller.overviewController;
+import hms.controller.patientListController;
+import hms.controller.registrationController;
+import hms.controller.staffListController;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,11 +25,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 
 public class HMS extends Application {
 
@@ -94,49 +96,11 @@ public class HMS extends Application {
         loginPage.show();
 
         // Login function
-        loginBtn.setOnAction(e -> {
-            String username = staffIDField.getText();
-            String password = passwordField.getText();
-
-            try {
-                // Connect to MySQL database
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
-
-                // Create statement object
-                Statement stmt = con.createStatement();
-
-                // Execute SQL query to verify user
-                ResultSet rs = stmt.executeQuery(
-                        "SELECT * FROM staff WHERE USERNAME='" + username + "' AND PASSWORD ='" + password + "'");
-                if (rs.next()) {
-                    loginPage.close();
-                    mainPage(rs.getString("USERNAME"), rs.getString("EMPLOYEETYPE"));
-                } else {
-                    // Show an error message for invalid credentials
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Information");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Wrong username or password");
-                    alert.showAndWait();
-                }
-                // Clean up resources
-                rs.close();
-                stmt.close();
-                con.close();
-            } catch (Exception a) {
-                a.printStackTrace();
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText(null);
-                alert.setContentText("Error: " + a.getMessage());
-                alert.showAndWait();
-                utilities.writeErrorLogs(a);
-            }
-        });
+        loginBtn.setOnAction(e -> loginController.login(staffIDField, passwordField, loginPage));
     }
 
     // Main Page
-    private void mainPage(String staffID, String EmployeeType) {
+    public void mainPage(String staffID, String EmployeeType) {
         Stage mainPageStage = new Stage();
         mainPageStage.setTitle("Hospital Management System");
 
@@ -164,7 +128,7 @@ public class HMS extends Application {
         VBox overviewLayout = new VBox();
         overviewLayout.setSpacing(10);
         overviewLayout.setPadding(new Insets(20));
-        utilities.overviewPage(overviewLayout);
+        overviewController.overviewPage(overviewLayout);
         overviewTab.setContent(overviewLayout);
         overviewTab.setClosable(false);
 
@@ -172,7 +136,7 @@ public class HMS extends Application {
         overviewTab.setOnSelectionChanged(event -> {
             if (overviewTab.isSelected()) {
                 overviewLayout.getChildren().clear();
-                utilities.overviewPage(overviewLayout);
+                overviewController.overviewPage(overviewLayout);
             }
         });
 
@@ -189,7 +153,7 @@ public class HMS extends Application {
 
         VBox registerLayout = new VBox(10);
         registerLayout.setPadding(new Insets(20));
-        utilities.registerPage(registerLayout);
+        registrationController.registerPage(registerLayout);
         registerTab.setContent(registerLayout);
         registerTab.setClosable(false);
 
@@ -206,7 +170,7 @@ public class HMS extends Application {
 
         VBox consultationLayout = new VBox(10);
         consultationLayout.setPadding(new Insets(20));
-        utilities.consultationPage(consultationLayout);
+        consultationController.consultationPage(consultationLayout);
         consultationTab.setContent(consultationLayout);
         consultationTab.setClosable(false);
 
@@ -224,14 +188,14 @@ public class HMS extends Application {
         VBox patientLayout = new VBox();
         patientLayout.setPadding(new Insets(20));
         patientLayout.setSpacing(10);
-        utilities.patientPage(patientLayout, EmployeeType);
+        patientListController.patientPage(patientLayout, EmployeeType);
         patientTab.setContent(patientLayout);
         patientTab.setClosable(false);
 
         patientTab.setOnSelectionChanged(event -> {
             if (patientTab.isSelected()) {
                 patientLayout.getChildren().clear();
-                utilities.patientPage(patientLayout, EmployeeType);
+                patientListController.patientPage(patientLayout, EmployeeType);
             }
         });
 
@@ -249,7 +213,7 @@ public class HMS extends Application {
         VBox staffLayout = new VBox();
         staffLayout.setPadding(new Insets(20));
         staffLayout.setSpacing(10);
-        utilities.staffTab(staffLayout, EmployeeType);
+        staffListController.staffTab(staffLayout, EmployeeType);
         staffTab.setContent(staffLayout);
         staffTab.setClosable(false);
 
@@ -265,10 +229,11 @@ public class HMS extends Application {
         logoutTab.setGraphic(logoutIconView);
 
         logoutTab.setClosable(false);
-        utilities.logout(logoutTab, mainPageStage);
+        logoutController.logout(logoutTab, mainPageStage);
 
         // Add the tabs to the tab pane
-        utilities.tabPane_employeeVerify(EmployeeType, tabPane, overviewTab, registerTab, consultationTab, patientTab,
+        loginController.tabPane_employeeVerify(EmployeeType, tabPane, overviewTab, registerTab, consultationTab,
+                patientTab,
                 staffTab,
                 logoutTab);
 
