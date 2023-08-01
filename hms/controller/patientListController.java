@@ -83,7 +83,7 @@ public class patientListController {
                 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
                 Statement stmt = con.createStatement();
 
-                String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, b.WardType, b.BEDID, b.assigned_Doctor, b.assigned_Nurse FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER";
+                String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, b.WardType, b.BEDID, b.assigned_Doctor, b.assigned_Nurse, b.Description FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER";
 
                 if (!searchInfo.isEmpty()) {
                     query += " WHERE p.LASTNAME = '" + searchInfo + "' OR p.PHEALTHNUMBER = '" + searchInfo
@@ -179,7 +179,7 @@ public class patientListController {
                 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
                 Statement stmt = con.createStatement();
 
-                String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, b.WardType, b.BEDID, b.assigned_Doctor, b.assigned_Nurse FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER";
+                String query = "SELECT p.PATIENTID, p.FIRSTNAME, p.LASTNAME, p.DATEOFBIRTH, p.PHONENUMBER, p.PIDENTIFICATIONNUMBER, p.PHEALTHNUMBER, p.ADDRESS, p.POSTALCODE, p.CITY, p.COUNTRY, p.isHospitalized, b.WardType, b.BEDID, b.assigned_Doctor, b.assigned_Nurse, b.Description FROM patient AS p LEFT JOIN bed AS b ON p.PHEALTHNUMBER = b.PHEALTHNUMBER";
 
                 if (!searchInfo.isEmpty()) {
                     query += " WHERE p.LASTNAME = '" + searchInfo + "' OR p.PHEALTHNUMBER = '" + searchInfo
@@ -280,6 +280,8 @@ public class patientListController {
                 return "Doctor In Charge";
             case "assigned_Nurse":
                 return "Nurse In Charge";
+            case "Description":
+                return "Desc";
             default:
                 return columnName;
         }
