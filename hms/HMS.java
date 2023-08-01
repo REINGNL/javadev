@@ -235,23 +235,23 @@ public class HMS extends Application {
             }
         });
 
-        // Checkout Page
-        Tab checkoutTab = new Tab("Check Out");
+        // Staff Page
+        Tab staffTab = new Tab("Staff List");
 
-        // Checkout Tab Icon
-        Image checkoutIcon = new Image("assets/icon/checkout-logo.png");
-        ImageView checkoutIconView = new ImageView(checkoutIcon);
-        checkoutIconView.setFitWidth(30);
-        checkoutIconView.setFitHeight(30);
-        checkoutIconView.getStyleClass().add("TabIcon");
-        checkoutTab.setGraphic(checkoutIconView);
+        // Staff Tab Icon
+        Image staffIcon = new Image("assets/icon/checkout-logo.png");
+        ImageView staffIconView = new ImageView(staffIcon);
+        staffIconView.setFitWidth(30);
+        staffIconView.setFitHeight(30);
+        staffIconView.getStyleClass().add("TabIcon");
+        staffTab.setGraphic(staffIconView);
 
-        VBox checkoutLayout = new VBox();
-        checkoutLayout.setPadding(new Insets(20));
-        checkoutLayout.setSpacing(10);
-        utilities.checkoutPage(checkoutLayout);
-        checkoutTab.setContent(checkoutLayout);
-        checkoutTab.setClosable(false);
+        VBox staffLayout = new VBox();
+        staffLayout.setPadding(new Insets(20));
+        staffLayout.setSpacing(10);
+        utilities.staffTab(staffLayout, EmployeeType);
+        staffTab.setContent(staffLayout);
+        staffTab.setClosable(false);
 
         // Logout Page
         Tab logoutTab = new Tab("Logout");
@@ -269,6 +269,7 @@ public class HMS extends Application {
 
         // Add the tabs to the tab pane
         utilities.tabPane_employeeVerify(EmployeeType, tabPane, overviewTab, registerTab, consultationTab, patientTab,
+                staffTab,
                 logoutTab);
 
         VBox mainLayout = new VBox();
