@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import com.mysql.cj.jdbc.result.ResultSetMetaData;
 
@@ -18,6 +19,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -118,6 +120,7 @@ public class staffListController {
                     });
                     column.setSortable(false);
                     table.getColumns().add(column);
+                    table.setMaxSize(1045, 900);
                 }
 
                 ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
@@ -228,15 +231,14 @@ public class staffListController {
         staffCountry.setFont(font);
         Label staffTypeLabel = new Label("Employee Type");
         staffTypeLabel.setFont(font);
-        TextField staffType = new TextField();
-        staffType.setText(employee);
-        staffType.setFont(font);
+        ComboBox<String> employeeType1 = new ComboBox<>();
+        employeeTypeDropDown(employeeType1);
 
         Label spacing = new Label();
         vbox.getChildren().addAll(firstNameLabel, staffFirstName, lastNameLabel, staffLastName, phoenNumberLabel,
                 staffPhoneNumber, addressLabel, staffAddress,
                 postalCodeLabel, staffPostalCode, cityLabel, staffCity, countryLabel, staffCountry, staffTypeLabel,
-                staffType, spacing);
+                employeeType1, spacing);
         vbox.setAlignment(Pos.CENTER_LEFT);
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -255,7 +257,7 @@ public class staffListController {
                             "LASTNAME='" + staffLastName.getText() + "', PHONENUMBER='" + staffPhoneNumber.getText() +
                             "', ADDRESS='" + staffAddress.getText() + "', POSTALCODE='" + staffPostalCode.getText() +
                             "', CITY='" + staffCity.getText() + "', COUNTRY='" + staffCountry.getText() +
-                            "', EMPLOYEETYPE='" + staffType.getText() + "' WHERE FIRSTNAME='" + firstName + "' AND " +
+                            "', EMPLOYEETYPE='" + employeeType1 + "' WHERE FIRSTNAME='" + firstName + "' AND " +
                             "LASTNAME='" + lastName + "' AND PHONENUMBER='" + phoneNumber + "'";
 
                     int rowsAffected = stmt.executeUpdate(updateStaffQuery);
@@ -292,5 +294,35 @@ public class staffListController {
         dialogStage.setTitle("Edit Staff Dialog");
         dialogStage.setScene(new Scene((Parent) alert.getDialogPane().getContent()));
         dialogStage.show();
+    }
+
+    protected static void employeeTypeDropDown(ComboBox<String> employeeType) {
+        try {
+            // Connect to MySQL database
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hms", "root", "");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt
+                    .executeQuery("SELECT DISTINCT EMPLOYEETYPE FROM staff WHERE EMPLOYEETYPE <> 'developer'");
+
+            ArrayList<String> employeeTypeList = new ArrayList<>();
+            while (rs.next()) {
+                String employeeTypeName = rs.getString("EMPLOYEETYPE");
+                employeeTypeList.add(employeeTypeName);
+            }
+
+            employeeType.setItems(FXCollections.observableArrayList(employeeTypeList));
+
+            rs.close();
+            stmt.close();
+            con.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Error: " + ex.getMessage());
+            alert.showAndWait();
+            utilities.writeErrorLogs(ex);
+        }
     }
 }

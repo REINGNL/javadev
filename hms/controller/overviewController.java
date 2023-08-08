@@ -147,14 +147,14 @@ public class overviewController {
 
                 Label wardName = new Label("Maternity Ward");
                 wardName.setFont(Font.font("Arial", FontWeight.BOLD, 15));
-                Label totalBedLabel = new Label("Total Bed");
-                totalBedLabel.setFont(Font.font("Arial", 13));
-                Label bedAvailabilityLabel = new Label(
-                        rs.getString("occupied_bed") + " / " + rs.getString("total_bed"));
+                // Label totalBedLabel = new Label("Available Bed");
+                // totalBedLabel.setFont(Font.font("Arial", 13));
+                Label bedAvailabilityLabel = new Label("Bed in use: " +
+                        rs.getString("occupied_bed"));
                 bedAvailabilityLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
                 VBox wardBox = new VBox(5);
-                wardBox.getChildren().addAll(wardName, totalBedLabel, bedAvailabilityLabel);
+                wardBox.getChildren().addAll(wardName, bedAvailabilityLabel);
                 wardBox.setPadding(new Insets(0, 20, 0, 20));
                 wardBox.setAlignment(Pos.CENTER_LEFT);
                 cardLayout_2.getChildren().add(wardBox);
@@ -189,14 +189,14 @@ public class overviewController {
             if (rs.next()) {
                 Label wardName = new Label("Surgical Ward");
                 wardName.setFont(Font.font("Arial", FontWeight.BOLD, 15));
-                Label totalBedLabel = new Label("Total Bed");
-                totalBedLabel.setFont(Font.font("Arial", 13));
-                Label bedAvailabilityLabel = new Label(
-                        rs.getString("occupied_bed") + " / " + rs.getString("total_bed"));
+                // Label totalBedLabel = new Label("Available Bed");
+                // totalBedLabel.setFont(Font.font("Arial", 13));
+                Label bedAvailabilityLabel = new Label("Bed in use: " +
+                        rs.getString("occupied_bed"));
                 bedAvailabilityLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
                 VBox wardBox = new VBox(5);
-                wardBox.getChildren().addAll(wardName, totalBedLabel, bedAvailabilityLabel);
+                wardBox.getChildren().addAll(wardName, bedAvailabilityLabel);
                 wardBox.setPadding(new Insets(0, 20, 0, 20));
                 wardBox.setAlignment(Pos.CENTER_LEFT);
                 cardLayout_3.getChildren().add(wardBox);
@@ -231,14 +231,14 @@ public class overviewController {
             if (rs.next()) {
                 Label wardName = new Label("Cancer Ward");
                 wardName.setFont(Font.font("Arial", FontWeight.BOLD, 15));
-                Label totalBedLabel = new Label("Total Bed");
-                totalBedLabel.setFont(Font.font("Arial", 13));
-                Label bedAvailabilityLabel = new Label(
-                        rs.getString("occupied_bed") + " / " + rs.getString("total_bed"));
+                // Label totalBedLabel = new Label("Available Bed");
+                // totalBedLabel.setFont(Font.font("Arial", 13));
+                Label bedAvailabilityLabel = new Label("Bed in Use :" +
+                        rs.getString("occupied_bed"));
                 bedAvailabilityLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
                 VBox wardBox = new VBox(5);
-                wardBox.getChildren().addAll(wardName, totalBedLabel, bedAvailabilityLabel);
+                wardBox.getChildren().addAll(wardName, bedAvailabilityLabel);
                 wardBox.setPadding(new Insets(0, 20, 0, 20));
                 wardBox.setAlignment(Pos.CENTER_LEFT);
                 cardLayout_4.getChildren().add(wardBox);
@@ -273,14 +273,14 @@ public class overviewController {
             if (rs.next()) {
                 Label wardName = new Label("Cardiac Ward");
                 wardName.setFont(Font.font("Arial", FontWeight.BOLD, 15));
-                Label totalBedLabel = new Label("Total Bed");
-                totalBedLabel.setFont(Font.font("Arial", 13));
-                Label bedAvailabilityLabel = new Label(
-                        rs.getString("occupied_bed") + " / " + rs.getString("total_bed"));
+                // Label totalBedLabel = new Label("Available Bed");
+                // totalBedLabel.setFont(Font.font("Arial", 13));
+                Label bedAvailabilityLabel = new Label("Bed in use: " +
+                        rs.getString("occupied_bed"));
                 bedAvailabilityLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
                 VBox wardBox = new VBox(5);
-                wardBox.getChildren().addAll(wardName, totalBedLabel, bedAvailabilityLabel);
+                wardBox.getChildren().addAll(wardName, bedAvailabilityLabel);
                 wardBox.setPadding(new Insets(0, 20, 0, 20));
                 wardBox.setAlignment(Pos.CENTER_LEFT);
                 cardLayout_5.getChildren().add(wardBox);
